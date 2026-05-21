@@ -136,17 +136,17 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
 /* ── MOBILE LOG FORM ── */
 .mobile-log{display:none}
-.ml-header{text-align:center;padding:24px 0 16px}
+.ml-header{text-align:center;padding:14px 0 8px}
 .ml-venue{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .ml-eq{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.01em;margin-bottom:2px}
 .ml-range{font-size:12px;font-family:var(--mono);color:var(--text3)}
-.ml-temp-wrap{text-align:center;padding:20px 0}
-.ml-temp-display{font-size:72px;font-weight:200;font-family:var(--mono);color:var(--text);line-height:1;letter-spacing:-.02em;min-height:80px;display:flex;align-items:center;justify-content:center;gap:4px}
+.ml-temp-wrap{text-align:center;padding:12px 0}
+.ml-temp-display{font-size:64px;font-weight:200;font-family:var(--mono);color:var(--text);line-height:1;letter-spacing:-.02em;min-height:70px;display:flex;align-items:center;justify-content:center;gap:4px}
 .ml-temp-display.ok-color{color:var(--green)}
 .ml-temp-display.bad-color{color:var(--red)}
-.ml-temp-unit{font-size:28px;color:var(--text3);align-self:flex-start;margin-top:12px}
-.ml-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto 20px}
-.ml-key{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 8px;font-size:22px;font-weight:300;font-family:var(--mono);color:var(--text);cursor:pointer;text-align:center;transition:background .1s;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.ml-temp-unit{font-size:24px;color:var(--text3);align-self:flex-start;margin-top:10px}
+.ml-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:260px;margin:0 auto 16px}
+.ml-key{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 8px;font-size:20px;font-weight:300;font-family:var(--mono);color:var(--text);cursor:pointer;text-align:center;transition:background .1s;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .ml-key:active{background:var(--bg4)}
 .ml-key.special{font-size:16px;color:var(--text2)}
 .ml-key.wide{grid-column:span 3}
@@ -160,9 +160,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .ml-photo-preview.show{display:block}
 .ml-photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;background:var(--bg3);border:1px dashed var(--border);border-radius:var(--r);color:var(--text2);font-size:13px;cursor:pointer;touch-action:manipulation}
 .ml-photo-btn:active{background:var(--bg4)}
-.ml-pin-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border2)}
-.ml-pin-boxes{display:flex;gap:10px;justify-content:center;margin:10px 0 16px;flex-wrap:nowrap}
-.ml-pin-box{width:50px;height:54px;text-align:center;font-size:24px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;padding:0;flex-shrink:0}
+.ml-pin-section{margin-top:12px;padding-top:14px;border-top:1px solid var(--border2)}
+.ml-pin-boxes{display:flex;gap:8px;justify-content:center;margin:10px 0 16px;flex-wrap:nowrap}
+.ml-pin-box{width:56px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none;padding:0;flex-shrink:0;-webkit-appearance:none}
 .ml-pin-box:focus{border-color:rgba(255,255,255,.3)}
 
 /* ── CONFIRMATION SCREEN ── */
@@ -447,12 +447,12 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
 
       <div class="ml-pin-section">
-        <div class="form-lbl" style="text-align:center;margin-bottom:4px">Staff PIN sign-off</div>
+        <div class="form-lbl" style="text-align:center;margin-bottom:8px;letter-spacing:.1em">PIN SIGN-OFF</div>
         <div class="ml-pin-boxes">
-          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp1" oninput="moveFocus(this,'mp2')">
-          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp2" oninput="moveFocus(this,'mp3')">
-          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp3" oninput="moveFocus(this,'mp4')">
-          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp4" oninput="moveFocus(this,null)">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp1" oninput="moveFocus(this,'mp2')" autocomplete="off">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp2" oninput="moveFocus(this,'mp3')" autocomplete="off">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp3" oninput="moveFocus(this,'mp4')" autocomplete="off">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp4" oninput="moveFocus(this,null)" autocomplete="off">
         </div>
         <button class="btn-primary" id="m-submit-btn" onclick="submitMobile()">Save reading</button>
       </div>
