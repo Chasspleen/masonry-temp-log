@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Masonry Temperature Log</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0F0F0F">
+<title>Masonry Temp Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
   --red:#E24B4A;--green:#1A9E72;--amber:#E8A020;--blue:#3A7BD5;
@@ -15,101 +19,101 @@
   --text:#F0F0F0;--text2:#888;--text3:#555;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --r:6px;--rl:10px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:14px}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
-.shell{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+html{font-size:14px;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+.shell{max-width:1000px;margin:0 auto;padding:0 20px calc(80px + var(--safe-bottom))}
 
-/* HEADER */
-.hd{padding:28px 0 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border2);margin-bottom:28px}
-.hd-left{display:flex;align-items:center;gap:14px}
-.hd-logo{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.hd-logo svg{width:18px;height:18px}
+/* ── HEADER ── */
+.hd{padding:20px 0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border2);margin-bottom:24px}
+.hd-left{display:flex;align-items:center;gap:12px}
+.hd-logo{width:34px;height:34px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hd-logo svg{width:17px;height:17px}
 .hd-title{font-size:15px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
-.hd-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.hd-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
 .hd-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sync{font-size:11px;font-family:var(--mono);padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
 .sync::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .sync.live{background:rgba(26,158,114,.12);color:var(--green)}.sync.live::before{background:var(--green)}
 .sync.syncing{background:rgba(232,160,32,.12);color:var(--amber);animation:pulse 1.2s infinite}.sync.syncing::before{background:var(--amber)}
 .sync.err{background:rgba(226,75,74,.12);color:var(--red)}.sync.err::before{background:var(--red)}
+.sync.queued{background:rgba(58,123,213,.12);color:var(--blue)}.sync.queued::before{background:var(--blue)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
-/* TABS */
-.tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:28px;width:fit-content;max-width:100%}
-.tab-btn{padding:9px 18px;font-size:13px;font-family:var(--font);font-weight:400;color:var(--text3);background:none;border:none;cursor:pointer;transition:color .15s,background .15s;white-space:nowrap}
+/* ── TABS ── */
+.tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:24px;width:fit-content;max-width:100%}
+.tab-btn{padding:9px 16px;font-size:13px;font-family:var(--font);font-weight:400;color:var(--text3);background:none;border:none;cursor:pointer;transition:color .15s,background .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .tab-btn:not(:last-child){border-right:1px solid var(--border2)}
 .tab-btn.active{background:var(--bg3);color:var(--text);font-weight:500}
 .tab-btn:hover:not(.active){color:var(--text2)}
-.tab-btn.admin-tab{color:#6060c0}
-.tab-btn.admin-tab.active{color:#a0a0ff}
+.tab-btn.admin-tab{color:#6060c0}.tab-btn.admin-tab.active{color:#a0a0ff}
 
-/* SECTIONS */
+/* ── SECTIONS ── */
 .sec{display:none}.sec.active{display:block}
 
-/* METRICS */
+/* ── METRICS ── */
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:24px}
 .metric{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:16px}
 .metric-lbl{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
 .metric-val{font-size:28px;font-weight:300;line-height:1}
 .metric-val.ok{color:var(--green)}.metric-val.warn{color:var(--amber)}.metric-val.bad{color:var(--red)}
 
-/* EQ CARDS */
+/* ── EQ CARDS ── */
 .venue-block{margin-bottom:20px}
 .venue-label{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border2)}
 .eq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .eq-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:12px 14px;position:relative;overflow:hidden}
 .eq-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
-.eq-card.ok::before{background:var(--green)}.eq-card.bad::before{background:var(--red)}.eq-card.none::before{background:var(--text3)}
+.eq-card.ok::before{background:var(--green)}.eq-card.bad::before{background:var(--red)}.eq-card.overdue::before{background:var(--amber)}.eq-card.none::before{background:var(--text3)}
 .eq-name{font-size:12px;color:var(--text2);margin-bottom:6px;line-height:1.3}
 .eq-temp{font-size:22px;font-weight:300;font-family:var(--mono);line-height:1}
-.eq-temp.ok{color:var(--green)}.eq-temp.bad{color:var(--red)}.eq-temp.none{color:var(--text3)}
+.eq-temp.ok{color:var(--green)}.eq-temp.bad{color:var(--red)}.eq-temp.overdue{color:var(--amber)}.eq-temp.none{color:var(--text3)}
 .eq-range{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:4px}
 .eq-when{font-size:10px;color:var(--text3);margin-top:3px}
+.overdue-pill{display:inline-block;font-size:9px;font-family:var(--mono);background:rgba(232,160,32,.15);color:var(--amber);padding:1px 6px;border-radius:20px;margin-top:4px}
 
-/* CARD */
+/* ── CARD ── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:20px 24px;margin-bottom:16px}
 .card-title{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
 
-/* FORM */
+/* ── FORM ── */
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
 .form-row.three{grid-template-columns:1fr 1fr 1fr}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-lbl{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
-input[type=number],input[type=text],input[type=password],select,textarea{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+input[type=number],input[type=text],input[type=password],select,textarea{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s;-webkit-appearance:none;appearance:none}
 input:focus,select:focus,textarea:focus{border-color:rgba(255,255,255,.2)}
 textarea{resize:vertical;min-height:72px}
 select option{background:#222}
 input[readonly]{color:var(--text2);cursor:default}
 
-/* ALERT */
+/* ── ALERT ── */
 .alert{background:rgba(226,75,74,.08);border:1px solid rgba(226,75,74,.25);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:13px;color:#f08080;display:none}
 .alert.show{display:block}
 .alert strong{display:block;font-weight:500;margin-bottom:2px;color:var(--red)}
 .corrective{background:rgba(226,75,74,.06);border:1px solid rgba(226,75,74,.2);border-radius:var(--r);padding:14px;margin-top:14px;display:none}
 .corrective.show{display:block}
 
-/* PIN */
+/* ── PIN ── */
 .pin-wrap{margin-top:20px}
-.pin-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
-.pin-box{width:44px;height:48px;text-align:center;font-size:20px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .15s;padding:0}
+.pin-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:nowrap}
+.pin-box{width:44px;height:48px;text-align:center;font-size:20px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .15s;padding:0;flex-shrink:0}
 .pin-box:focus{border-color:rgba(255,255,255,.25)}
-.pin-hint{font-size:11px;font-family:var(--mono);color:var(--text3);margin-left:4px}
+.pin-hint{font-size:11px;font-family:var(--mono);color:var(--text3);margin-left:4px;white-space:nowrap}
 
-/* BUTTONS */
-.btn-primary{width:100%;margin-top:16px;padding:11px;background:var(--red);border:none;border-radius:var(--r);color:#fff;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s}
-.btn-primary:hover{opacity:.88}.btn-primary:active{transform:scale(.99)}.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.btn-sm{padding:7px 14px;font-size:12px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
-.btn-sm:hover{color:var(--text);border-color:rgba(255,255,255,.15)}
-.btn-danger{background:rgba(226,75,74,.12);border:1px solid rgba(226,75,74,.25);color:var(--red);padding:6px 12px;font-size:12px;font-family:var(--mono);border-radius:var(--r);cursor:pointer;transition:background .15s}
-.btn-danger:hover{background:rgba(226,75,74,.22)}
-.btn-success{background:rgba(26,158,114,.12);border:1px solid rgba(26,158,114,.25);color:var(--green);padding:6px 12px;font-size:12px;font-family:var(--mono);border-radius:var(--r);cursor:pointer;transition:background .15s}
-.btn-success:hover{background:rgba(26,158,114,.22)}
-.btn-icon{background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:var(--r);font-size:13px;color:var(--text3);transition:color .15s,background .15s;font-family:var(--mono)}
-.btn-icon:hover{color:var(--text);background:var(--bg4)}
+/* ── BUTTONS ── */
+.btn-primary{width:100%;margin-top:16px;padding:13px;background:var(--red);border:none;border-radius:var(--r);color:#fff;font-family:var(--font);font-size:15px;font-weight:500;cursor:pointer;transition:opacity .15s,transform .1s;touch-action:manipulation}
+.btn-primary:active{transform:scale(.98)}.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-sm{padding:7px 14px;font-size:12px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s;touch-action:manipulation}
+.btn-sm:active{color:var(--text)}
+.btn-danger{background:rgba(226,75,74,.12);border:1px solid rgba(226,75,74,.25);color:var(--red);padding:6px 12px;font-size:12px;font-family:var(--mono);border-radius:var(--r);cursor:pointer}
+.btn-success{background:rgba(26,158,114,.12);border:1px solid rgba(26,158,114,.25);color:var(--green);padding:6px 12px;font-size:12px;font-family:var(--mono);border-radius:var(--r);cursor:pointer}
+.btn-icon{background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:var(--r);font-size:13px;color:var(--text3);font-family:var(--mono);touch-action:manipulation}
+.btn-icon:active{color:var(--text);background:var(--bg4)}
 
-/* TABLE */
+/* ── TABLE ── */
 .table-wrap{overflow-x:auto}
 .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .filter-row select{width:auto;flex:1;min-width:120px}
@@ -124,13 +128,66 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .temp-val{font-family:var(--mono);font-weight:500}
 .temp-val.ok{color:var(--green)}.temp-val.bad{color:var(--red)}
 
-/* CHART */
+/* ── CHART ── */
 .chart-wrap{position:relative;width:100%;height:220px;margin-top:8px}
 .chart-legend{display:flex;gap:14px;font-size:11px;font-family:var(--mono);color:var(--text3);flex-wrap:wrap;margin-top:4px}
 .chart-legend span{display:flex;align-items:center;gap:5px}
 .chart-legend i{width:10px;height:10px;border-radius:2px;flex-shrink:0}
 
-/* ADMIN */
+/* ── MOBILE LOG FORM ── */
+.mobile-log{display:none}
+.ml-header{text-align:center;padding:24px 0 16px}
+.ml-venue{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.ml-eq{font-size:20px;font-weight:600;color:var(--text);letter-spacing:-.01em;margin-bottom:2px}
+.ml-range{font-size:12px;font-family:var(--mono);color:var(--text3)}
+.ml-temp-wrap{text-align:center;padding:20px 0}
+.ml-temp-display{font-size:72px;font-weight:200;font-family:var(--mono);color:var(--text);line-height:1;letter-spacing:-.02em;min-height:80px;display:flex;align-items:center;justify-content:center;gap:4px}
+.ml-temp-display.ok-color{color:var(--green)}
+.ml-temp-display.bad-color{color:var(--red)}
+.ml-temp-unit{font-size:28px;color:var(--text3);align-self:flex-start;margin-top:12px}
+.ml-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto 20px}
+.ml-key{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px 8px;font-size:22px;font-weight:300;font-family:var(--mono);color:var(--text);cursor:pointer;text-align:center;transition:background .1s;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.ml-key:active{background:var(--bg4)}
+.ml-key.special{font-size:16px;color:var(--text2)}
+.ml-key.wide{grid-column:span 3}
+.ml-alert{background:rgba(226,75,74,.1);border:1px solid rgba(226,75,74,.3);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:13px;color:#f08080;display:none;text-align:left}
+.ml-alert.show{display:block}
+.ml-alert strong{display:block;color:var(--red);font-weight:500;margin-bottom:2px}
+.ml-corrective{background:rgba(226,75,74,.06);border:1px solid rgba(226,75,74,.2);border-radius:var(--r);padding:14px;margin-bottom:14px;display:none}
+.ml-corrective.show{display:block}
+.ml-photo-wrap{margin-bottom:14px}
+.ml-photo-preview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);margin-top:8px;display:none}
+.ml-photo-preview.show{display:block}
+.ml-photo-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px;background:var(--bg3);border:1px dashed var(--border);border-radius:var(--r);color:var(--text2);font-size:13px;cursor:pointer;touch-action:manipulation}
+.ml-photo-btn:active{background:var(--bg4)}
+.ml-pin-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border2)}
+.ml-pin-boxes{display:flex;gap:10px;justify-content:center;margin:10px 0 16px;flex-wrap:nowrap}
+.ml-pin-box{width:50px;height:54px;text-align:center;font-size:24px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;padding:0;flex-shrink:0}
+.ml-pin-box:focus{border-color:rgba(255,255,255,.3)}
+
+/* ── CONFIRMATION SCREEN ── */
+.confirm-screen{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+.confirm-screen.show{display:flex}
+.confirm-icon{font-size:56px;margin-bottom:20px}
+.confirm-title{font-size:22px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+.confirm-sub{font-size:14px;color:var(--text2);margin-bottom:28px;line-height:1.5}
+.confirm-details{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;margin-bottom:28px;width:100%;max-width:320px;text-align:left}
+.confirm-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.confirm-row:not(:last-child){border-bottom:1px solid var(--border2)}
+.confirm-row-lbl{color:var(--text3);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.confirm-row-val{color:var(--text);font-weight:500}
+.confirm-row-val.ok{color:var(--green)}.confirm-row-val.bad{color:var(--red)}
+.confirm-queue-note{font-size:11px;font-family:var(--mono);color:var(--amber);margin-bottom:20px}
+.confirm-btn{padding:13px 32px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;touch-action:manipulation;min-width:180px}
+.confirm-btn:active{background:var(--bg4)}
+
+/* ── OFFLINE QUEUE BANNER ── */
+.queue-banner{background:rgba(58,123,213,.1);border:1px solid rgba(58,123,213,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;gap:10px}
+.queue-banner.show{display:flex}
+.queue-banner-text{font-size:12px;font-family:var(--mono);color:var(--blue)}
+.queue-banner-btn{font-size:11px;font-family:var(--mono);padding:4px 10px;background:rgba(58,123,213,.15);border:1px solid rgba(58,123,213,.25);border-radius:20px;color:var(--blue);cursor:pointer;white-space:nowrap}
+
+/* ── ADMIN ── */
 .admin-lock-wrap{display:flex;justify-content:center;padding:40px 0}
 .admin-panels{display:none}.admin-panels.unlocked{display:block}
 .admin-section{margin-bottom:28px}
@@ -140,29 +197,52 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .admin-row-info{flex:1;display:flex;gap:10px;align-items:center;flex-wrap:wrap;min-width:0}
 .admin-row-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap}
 .admin-chip{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--text3);white-space:nowrap}
+.admin-chip.warn{background:rgba(232,160,32,.1);color:var(--amber)}
 .add-form{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:8px;display:none}
 .add-form.open{display:block}
 .add-form-grid{display:grid;gap:10px;margin-bottom:10px}
 .add-form-grid.g2{grid-template-columns:1fr 1fr}
 .add-form-grid.g3{grid-template-columns:1fr 1fr 1fr}
+.add-form-grid.g4{grid-template-columns:1fr 1fr 1fr 1fr}
 .add-form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.info-box{font-size:12px;font-family:var(--mono);color:var(--text3);padding:10px 14px;background:rgba(58,123,213,.07);border:1px solid rgba(58,123,213,.14);border-radius:var(--r);margin-bottom:14px;line-height:1.5}
 .venue-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
 .venue-tab-btn{padding:5px 14px;font-size:12px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border2);border-radius:20px;color:var(--text3);cursor:pointer;transition:all .15s}
 .venue-tab-btn.active{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:var(--text)}
-.info-box{font-size:12px;font-family:var(--mono);color:var(--text3);padding:10px 14px;background:rgba(58,123,213,.07);border:1px solid rgba(58,123,213,.14);border-radius:var(--r);margin-bottom:14px;line-height:1.5}
 .save-bar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:14px 0;margin-top:28px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .save-bar-hint{font-size:11px;font-family:var(--mono);color:var(--text3);display:flex;align-items:center;gap:6px}
 .unsaved-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;flex-shrink:0}
 .divider{height:1px;background:var(--border2);margin:24px 0}
 
-/* OVERLAY SPINNER */
+/* ── QR PRINT ── */
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.qr-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rl);padding:16px;text-align:center}
+.qr-card-venue{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.qr-card-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.qr-card-range{font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:10px}
+.qr-box{display:flex;justify-content:center;margin-bottom:8px}
+.qr-box canvas,.qr-box img{border-radius:4px}
+.qr-url{font-size:9px;font-family:var(--mono);color:var(--text3);word-break:break-all;line-height:1.4}
+@media print{
+  body{background:#fff;color:#000}
+  .shell{padding:0}
+  .hd,.tabs,.save-bar,.queue-banner{display:none!important}
+  .sec{display:none!important}
+  .sec.active{display:none!important}
+  #print-qr-section{display:block!important}
+  .qr-grid{grid-template-columns:repeat(3,1fr)}
+  .qr-card{background:#fff;border:1px solid #ddd;break-inside:avoid;page-break-inside:avoid}
+  .qr-card-venue,.qr-card-name,.qr-card-range,.qr-url{color:#333}
+  .qr-card-name{color:#000}
+}
+#print-qr-section{display:none}
+
+/* ── OVERLAYS ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .overlay.show{display:flex}
 .spinner{width:32px;height:32px;border:2px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.6);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .overlay-msg{font-size:13px;font-family:var(--mono);color:var(--text2)}
-
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
 .modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:24px;width:100%;max-width:400px}
@@ -170,25 +250,46 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .modal-sub{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:20px;line-height:1.5}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
 
-/* TOAST */
-.toast{position:fixed;bottom:24px;right:24px;padding:11px 18px;border-radius:var(--r);font-size:13px;font-family:var(--mono);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;transform:translateY(8px);z-index:999;max-width:340px;line-height:1.4}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(24px + var(--safe-bottom));right:24px;padding:11px 18px;border-radius:var(--r);font-size:13px;font-family:var(--mono);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;transform:translateY(8px);z-index:999;max-width:340px;line-height:1.4}
 .toast.show{opacity:1;transform:translateY(0)}
-.toast.ok{background:var(--green);color:#fff}
-.toast.err{background:var(--red);color:#fff}
-.toast.info{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}.toast.info{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
 
 .empty{text-align:center;padding:28px;color:var(--text3);font-size:13px;font-family:var(--mono)}
 
+/* ── RESPONSIVE ── */
 @media(max-width:600px){
   .form-row,.form-row.three{grid-template-columns:1fr}
-  .add-form-grid.g2,.add-form-grid.g3{grid-template-columns:1fr 1fr}
+  .add-form-grid.g2,.add-form-grid.g3,.add-form-grid.g4{grid-template-columns:1fr 1fr}
   .hd{flex-direction:column;align-items:flex-start}
   .tabs{overflow-x:auto;width:100%}
   .tab-btn{padding:9px 12px;font-size:12px}
+  .desktop-log{display:none}
+  .mobile-log{display:block}
+}
+@media(min-width:601px){
+  .mobile-log{display:none}
+  .desktop-log{display:block}
 }
 </style>
 </head>
 <body>
+
+<!-- ── CONFIRMATION SCREEN ── -->
+<div class="confirm-screen" id="confirm-screen">
+  <div class="confirm-icon" id="confirm-icon">✅</div>
+  <div class="confirm-title" id="confirm-title">Reading saved</div>
+  <div class="confirm-sub" id="confirm-sub"></div>
+  <div class="confirm-details" id="confirm-details"></div>
+  <div class="confirm-queue-note" id="confirm-queue-note" style="display:none">⚠ Saved offline — will sync when connection returns</div>
+  <button class="confirm-btn" onclick="closeConfirm()">Log another reading</button>
+</div>
+
+<!-- ── QR PRINT SECTION ── -->
+<div id="print-qr-section">
+  <div style="text-align:center;padding:20px 0 10px;font-family:var(--mono);font-size:13px;font-weight:500">Masonry Temp Log — Equipment QR Codes</div>
+  <div id="print-qr-grid" class="qr-grid"></div>
+</div>
 
 <div class="shell">
 
@@ -201,16 +302,22 @@ tr:hover td{background:rgba(255,255,255,.015)}
         </svg>
       </div>
       <div>
-        <div class="hd-title">Masonry Temperature Log</div>
-        <div class="hd-sub">BHG Food Safety — Canggu &amp; Uluwatu</div>
+        <div class="hd-title">Masonry Temp Log</div>
+        <div class="hd-sub">BHG Food Safety</div>
       </div>
     </div>
     <div class="hd-right">
       <span class="sync syncing" id="sync-badge">Connecting...</span>
       <button class="btn-sm" onclick="exportCSV()">↓ Export</button>
-      <button class="btn-sm" onclick="switchTab('log')">+ New Reading</button>
+      <button class="btn-sm" onclick="switchTab('log')">+ Reading</button>
     </div>
   </header>
+
+  <!-- OFFLINE QUEUE BANNER -->
+  <div class="queue-banner" id="queue-banner">
+    <span class="queue-banner-text" id="queue-banner-text">📶 Offline — readings queued locally</span>
+    <button class="queue-banner-btn" onclick="flushQueue()">Sync now</button>
+  </div>
 
   <!-- TABS -->
   <nav class="tabs" role="tablist">
@@ -221,71 +328,138 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <button class="tab-btn admin-tab" onclick="switchTab('admin')">⚙ Admin</button>
   </nav>
 
-  <!-- DASHBOARD -->
+  <!-- ── DASHBOARD ── -->
   <div class="sec active" id="sec-dashboard">
     <div class="metrics">
       <div class="metric"><div class="metric-lbl">Total readings</div><div class="metric-val" id="m-total">—</div></div>
       <div class="metric"><div class="metric-lbl">Today</div><div class="metric-val" id="m-today">—</div></div>
       <div class="metric"><div class="metric-lbl">Out of range today</div><div class="metric-val" id="m-out">—</div></div>
-      <div class="metric"><div class="metric-lbl">Total incidents</div><div class="metric-val" id="m-inc">—</div></div>
+      <div class="metric"><div class="metric-lbl">Overdue checks</div><div class="metric-val" id="m-overdue">—</div></div>
     </div>
     <div id="dashboard-venues"></div>
   </div>
 
-  <!-- LOG READING -->
+  <!-- ── LOG READING ── -->
   <div class="sec" id="sec-log">
-    <div class="card">
-      <div class="card-title">New temperature reading</div>
-      <div class="alert" id="alert-box"><strong>Out-of-range reading</strong><span id="alert-msg"></span></div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-lbl">Venue</label>
-          <select id="log-venue" onchange="updateEqList()"></select>
+
+    <!-- DESKTOP FORM -->
+    <div class="desktop-log">
+      <div class="card">
+        <div class="card-title">New temperature reading</div>
+        <div class="alert" id="d-alert-box"><strong>Out-of-range reading</strong><span id="d-alert-msg"></span></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-lbl">Venue</label><select id="d-log-venue" onchange="deskUpdateEq()"></select></div>
+          <div class="form-group"><label class="form-lbl">Equipment</label><select id="d-log-eq"></select></div>
         </div>
-        <div class="form-group">
-          <label class="form-lbl">Equipment</label>
-          <select id="log-eq"></select>
+        <div class="form-row three">
+          <div class="form-group"><label class="form-lbl">Temperature (°C)</label><input type="number" id="d-log-temp" step="0.1" placeholder="e.g. 4.2" oninput="deskCheckTemp()"></div>
+          <div class="form-group"><label class="form-lbl">Date</label><input type="text" id="d-log-date" readonly></div>
+          <div class="form-group"><label class="form-lbl">Time</label><input type="text" id="d-log-time" readonly></div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px"><label class="form-lbl">Notes (optional)</label><textarea id="d-log-notes" placeholder="Any observations..."></textarea></div>
+        <div class="corrective" id="d-corrective-wrap">
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-lbl" style="color:#c06060">⚠ Corrective action taken</label>
+            <textarea id="d-corrective-note" placeholder="Describe corrective action taken..."></textarea>
+          </div>
+          <div class="ml-photo-wrap">
+            <label class="form-lbl">Photo (optional)</label>
+            <div style="margin-top:6px">
+              <label class="ml-photo-btn" for="d-photo-input">📷 Attach photo</label>
+              <input type="file" id="d-photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoDesk(this)">
+              <img id="d-photo-preview" class="ml-photo-preview" alt="Photo preview">
+            </div>
+          </div>
+        </div>
+        <div class="pin-wrap">
+          <div class="form-lbl">Staff PIN sign-off</div>
+          <div class="pin-row">
+            <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="dp1" oninput="moveFocus(this,'dp2')">
+            <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="dp2" oninput="moveFocus(this,'dp3')">
+            <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="dp3" oninput="moveFocus(this,'dp4')">
+            <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="dp4" oninput="moveFocus(this,null)">
+            <span class="pin-hint">4-digit PIN</span>
+          </div>
+          <button class="btn-primary" id="d-submit-btn" onclick="submitDesk()">Save reading</button>
         </div>
       </div>
-      <div class="form-row three">
-        <div class="form-group">
-          <label class="form-lbl">Temperature (°C)</label>
-          <input type="number" id="log-temp" step="0.1" placeholder="e.g. 4.2" oninput="checkTemp()">
-        </div>
-        <div class="form-group">
-          <label class="form-lbl">Date</label>
-          <input type="text" id="log-date" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-lbl">Time</label>
-          <input type="text" id="log-time" readonly>
+    </div>
+
+    <!-- MOBILE FORM -->
+    <div class="mobile-log" id="mobile-log">
+      <div class="ml-header">
+        <div class="ml-venue" id="ml-venue-label">—</div>
+        <div class="ml-eq" id="ml-eq-label">—</div>
+        <div class="ml-range" id="ml-range-label">—</div>
+      </div>
+
+      <!-- Venue / Equipment selectors (shown when no QR params) -->
+      <div id="ml-selectors" style="margin-bottom:16px;display:none">
+        <div class="form-row" style="margin-bottom:10px">
+          <div class="form-group"><label class="form-lbl">Venue</label><select id="m-log-venue" onchange="mobileUpdateEq()"></select></div>
+          <div class="form-group"><label class="form-lbl">Equipment</label><select id="m-log-eq" onchange="mobileEqChanged()"></select></div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-lbl">Notes (optional)</label>
-        <textarea id="log-notes" placeholder="Any observations..."></textarea>
+
+      <div class="ml-alert" id="ml-alert"><strong>Out of range</strong><span id="ml-alert-msg"></span></div>
+
+      <div class="ml-temp-wrap">
+        <div class="ml-temp-display" id="ml-temp-display">
+          <span id="ml-temp-val">—</span>
+          <span class="ml-temp-unit">°C</span>
+        </div>
       </div>
-      <div class="corrective" id="corrective-wrap">
-        <div class="form-group">
+
+      <div class="ml-numpad">
+        <div class="ml-key" data-val="7">7</div>
+        <div class="ml-key" data-val="8">8</div>
+        <div class="ml-key" data-val="9">9</div>
+        <div class="ml-key" data-val="4">4</div>
+        <div class="ml-key" data-val="5">5</div>
+        <div class="ml-key" data-val="6">6</div>
+        <div class="ml-key" data-val="1">1</div>
+        <div class="ml-key" data-val="2">2</div>
+        <div class="ml-key" data-val="3">3</div>
+        <div class="ml-key special" data-val="-">±</div>
+        <div class="ml-key" data-val="0">0</div>
+        <div class="ml-key special" data-val=".">.</div>
+        <div class="ml-key special" data-val="del" style="grid-column:span 3;font-size:18px">⌫ Delete</div>
+      </div>
+
+      <div class="ml-corrective" id="ml-corrective-wrap">
+        <div class="form-group" style="margin-bottom:10px">
           <label class="form-lbl" style="color:#c06060">⚠ Corrective action taken</label>
-          <textarea id="corrective-note" placeholder="Describe corrective action taken..."></textarea>
+          <textarea id="ml-corrective-note" placeholder="Describe corrective action taken..." style="font-size:16px"></textarea>
+        </div>
+        <div class="ml-photo-wrap">
+          <label class="form-lbl">Photo (optional)</label>
+          <div style="margin-top:6px">
+            <label class="ml-photo-btn" for="ml-photo-input">📷 Attach photo</label>
+            <input type="file" id="ml-photo-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoMobile(this)">
+            <img id="ml-photo-preview" class="ml-photo-preview" alt="Photo preview">
+          </div>
         </div>
       </div>
-      <div class="pin-wrap">
-        <div class="form-lbl">Staff PIN sign-off</div>
-        <div class="pin-row">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="p1" oninput="moveFocus(this,'p2')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="p2" oninput="moveFocus(this,'p3')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="p3" oninput="moveFocus(this,'p4')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="p4" oninput="moveFocus(this,null)">
-          <span class="pin-hint">4-digit PIN</span>
+
+      <div class="form-group" style="margin-bottom:14px">
+        <label class="form-lbl">Notes (optional)</label>
+        <textarea id="ml-log-notes" placeholder="Any observations..." style="font-size:16px"></textarea>
+      </div>
+
+      <div class="ml-pin-section">
+        <div class="form-lbl" style="text-align:center;margin-bottom:4px">Staff PIN sign-off</div>
+        <div class="ml-pin-boxes">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp1" oninput="moveFocus(this,'mp2')">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp2" oninput="moveFocus(this,'mp3')">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp3" oninput="moveFocus(this,'mp4')">
+          <input class="ml-pin-box" type="password" maxlength="1" inputmode="numeric" id="mp4" oninput="moveFocus(this,null)">
         </div>
-        <button class="btn-primary" id="submit-btn" onclick="submitReading()">Save reading</button>
+        <button class="btn-primary" id="m-submit-btn" onclick="submitMobile()">Save reading</button>
       </div>
     </div>
   </div>
 
-  <!-- HISTORY -->
+  <!-- ── HISTORY ── -->
   <div class="sec" id="sec-history">
     <div class="card">
       <div class="filter-row">
@@ -299,56 +473,47 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Time</th><th>Venue</th><th>Equipment</th><th>Temp</th><th>Status</th><th>Staff</th><th>Action / Notes</th></tr></thead>
+          <thead><tr><th>Date</th><th>Time</th><th>Venue</th><th>Equipment</th><th>Temp</th><th>Status</th><th>Staff</th><th>Notes / Action</th><th id="del-col-header" style="display:none"></th></tr></thead>
           <tbody id="history-body"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- TRENDS -->
+  <!-- ── TRENDS ── -->
   <div class="sec" id="sec-chart">
     <div class="card">
-      <div style="margin-bottom:12px">
-        <select id="chart-eq" onchange="renderChart()" style="max-width:320px"></select>
-      </div>
+      <div style="margin-bottom:12px"><select id="chart-eq" onchange="renderChart()" style="max-width:320px"></select></div>
       <div class="chart-legend" id="chart-legend"></div>
       <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
     </div>
   </div>
 
-  <!-- ADMIN -->
+  <!-- ── ADMIN ── -->
   <div class="sec" id="sec-admin">
 
-    <!-- LOCK -->
     <div class="admin-lock-wrap" id="admin-lock">
-      <div class="card" style="max-width:320px;width:100%;text-align:center">
+      <div class="card" style="max-width:380px;width:100%;text-align:center">
         <div style="font-size:30px;margin-bottom:12px">🔒</div>
         <div style="font-size:14px;font-weight:500;margin-bottom:6px">Admin access</div>
-        <div style="font-size:12px;font-family:var(--mono);color:var(--text3);margin-bottom:20px;line-height:1.5">
-          Manage staff PINs, equipment, temperature ranges and venues.<br>Changes sync to all devices instantly.
-        </div>
-        <div class="pin-row" style="justify-content:center;margin-bottom:0">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="ap1" oninput="adminPinFocus(this,'ap2')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="ap2" oninput="adminPinFocus(this,'ap3')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="ap3" oninput="adminPinFocus(this,'ap4')">
-          <input class="pin-box" type="password" maxlength="1" inputmode="numeric" id="ap4" oninput="adminPinFocus(this,null)">
+        <div style="font-size:12px;font-family:var(--mono);color:var(--text3);margin-bottom:20px;line-height:1.5">Manage staff, equipment, ranges, venues and QR codes.<br>Changes sync to all devices instantly.</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-bottom:0;flex-wrap:nowrap">
+          <input type="password" maxlength="1" inputmode="numeric" id="ap1" oninput="adminPinFocus(this,'ap2')" style="width:52px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;flex-shrink:0;padding:0">
+          <input type="password" maxlength="1" inputmode="numeric" id="ap2" oninput="adminPinFocus(this,'ap3')" style="width:52px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;flex-shrink:0;padding:0">
+          <input type="password" maxlength="1" inputmode="numeric" id="ap3" oninput="adminPinFocus(this,'ap4')" style="width:52px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;flex-shrink:0;padding:0">
+          <input type="password" maxlength="1" inputmode="numeric" id="ap4" oninput="adminPinFocus(this,null)" style="width:52px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;flex-shrink:0;padding:0">
         </div>
         <button class="btn-primary" onclick="unlockAdmin()">Unlock</button>
         <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-top:10px">Default admin PIN: 0000</div>
       </div>
     </div>
 
-    <!-- PANELS -->
     <div class="admin-panels" id="admin-panels">
 
-      <!-- CHANGE ADMIN PIN -->
+      <!-- Admin PIN -->
       <div class="admin-section">
-        <div class="admin-section-hd">
-          <span>Admin PIN</span>
-          <button class="btn-sm" onclick="toggleForm('form-adminpin')">Change PIN</button>
-        </div>
-        <div class="info-box">Admin PIN controls access to this panel. Changes are pushed to all devices on save.</div>
+        <div class="admin-section-hd"><span>Admin PIN</span><button class="btn-sm" onclick="toggleForm('form-adminpin')">Change PIN</button></div>
+        <div class="info-box">Admin PIN controls access to this panel. Changes sync to all devices on save.</div>
         <div class="add-form" id="form-adminpin">
           <div class="add-form-grid g2">
             <div class="form-group"><label class="form-lbl">New PIN</label><input type="password" id="new-apin" maxlength="4" inputmode="numeric" placeholder="••••"></div>
@@ -360,15 +525,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
           </div>
         </div>
       </div>
-
       <div class="divider"></div>
 
-      <!-- STAFF -->
+      <!-- Staff -->
       <div class="admin-section">
-        <div class="admin-section-hd">
-          <span>Staff &amp; PINs</span>
-          <button class="btn-sm" onclick="toggleForm('form-staff')">+ Add staff</button>
-        </div>
+        <div class="admin-section-hd"><span>Staff &amp; PINs</span><button class="btn-sm" onclick="toggleForm('form-staff')">+ Add staff</button></div>
         <div class="add-form" id="form-staff">
           <div class="add-form-grid g2">
             <div class="form-group"><label class="form-lbl">Name</label><input type="text" id="new-staff-name" placeholder="e.g. Budi"></div>
@@ -381,24 +542,20 @@ tr:hover td{background:rgba(255,255,255,.015)}
         </div>
         <div class="admin-list" id="staff-list"></div>
       </div>
-
       <div class="divider"></div>
 
-      <!-- EQUIPMENT -->
+      <!-- Equipment -->
       <div class="admin-section">
-        <div class="admin-section-hd"><span>Equipment &amp; Temperature Ranges</span></div>
+        <div class="admin-section-hd"><span>Equipment, Ranges &amp; Schedules</span></div>
+        <div class="info-box">Set check frequency per unit. Dashboard flags units overdue based on hours since last reading.</div>
         <div class="venue-tabs" id="eq-venue-tabs"></div>
         <div id="eq-venue-panels"></div>
       </div>
-
       <div class="divider"></div>
 
-      <!-- VENUES -->
+      <!-- Venues -->
       <div class="admin-section">
-        <div class="admin-section-hd">
-          <span>Venues</span>
-          <button class="btn-sm" onclick="toggleForm('form-venue')">+ Add venue</button>
-        </div>
+        <div class="admin-section-hd"><span>Venues</span><button class="btn-sm" onclick="toggleForm('form-venue')">+ Add venue</button></div>
         <div class="add-form" id="form-venue">
           <div class="add-form-grid">
             <div class="form-group"><label class="form-lbl">Venue name</label><input type="text" id="new-venue-name" placeholder="e.g. The Backroom"></div>
@@ -410,8 +567,25 @@ tr:hover td{background:rgba(255,255,255,.015)}
         </div>
         <div class="admin-list" id="venue-list"></div>
       </div>
+      <div class="divider"></div>
 
-      <!-- SAVE BAR -->
+      <!-- QR Codes -->
+      <div class="admin-section">
+        <div class="admin-section-hd"><span>QR Codes</span></div>
+        <div class="info-box">Print and laminate one card per unit. Staff scan to open a pre-filled log form on their phone.</div>
+        <div style="margin-bottom:12px">
+          <label class="form-lbl" style="display:block;margin-bottom:6px">Base URL (your GitHub Pages URL)</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="qr-base-url" placeholder="https://yourusername.github.io/masonry-temp-log" style="flex:1">
+            <button class="btn-success" onclick="generateQRCodes()">Generate</button>
+          </div>
+        </div>
+        <div id="qr-preview-grid" class="qr-grid"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap" id="qr-print-actions" style="display:none">
+          <button class="btn-sm" onclick="window.print()">🖨 Print all QR codes</button>
+        </div>
+      </div>
+
       <div class="save-bar">
         <div class="save-bar-hint" id="save-hint">All changes saved</div>
         <div style="display:flex;gap:8px">
@@ -422,15 +596,11 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
     </div>
   </div>
+
 </div>
 
-<!-- SPINNER OVERLAY -->
-<div class="overlay" id="overlay">
-  <div class="spinner"></div>
-  <div class="overlay-msg" id="overlay-msg">Syncing...</div>
-</div>
-
-<!-- CONFIRM MODAL -->
+<!-- OVERLAYS -->
+<div class="overlay" id="overlay"><div class="spinner"></div><div class="overlay-msg" id="overlay-msg">Syncing...</div></div>
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal">
     <div class="modal-title" id="modal-title">Confirm deletion</div>
@@ -441,226 +611,472 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZBrzyfUMMCAf3GiWtmkNI5gILUUUuPazIGyYVI5kCbPDrC_8bbXNFrYSD4AzGEEzC/exec";
+const APP_URL    = window.location.origin + window.location.pathname;
 
 // ── STATE ──────────────────────────────────────────────────────
-let config = null;      // loaded from sheet
+let config   = null;
 let readings = [];
 let trendChart = null;
 let adminUnlocked = false;
 let activeEqVenue = null;
-let unsaved = false;
+let unsaved  = false;
+let offlineQueue = JSON.parse(localStorage.getItem('masonryQueue')||'[]');
+let mobileTemp = '';
+let mobilePhotoData = null;
+let deskPhotoData   = null;
 
-// ── UTILITIES ──────────────────────────────────────────────────
-function $(id){ return document.getElementById(id); }
-
-function toast(msg, type='ok'){
-  const el = $('toast');
-  el.textContent = msg;
-  el.className = 'toast '+type+' show';
-  clearTimeout(el._t);
-  el._t = setTimeout(()=> el.className='toast', 3400);
+// ── UTILS ──────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg,type='ok'){
+  const el=$('toast'); el.textContent=msg; el.className='toast '+type+' show';
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className='toast',3400);
 }
-
-function showOverlay(msg){ $('overlay-msg').textContent = msg||'Syncing...'; $('overlay').classList.add('show'); }
-function hideOverlay(){ $('overlay').classList.remove('show'); }
-
+function showOverlay(msg){$('overlay-msg').textContent=msg||'Syncing...';$('overlay').classList.add('show');}
+function hideOverlay(){$('overlay').classList.remove('show');}
 function setSyncBadge(state){
-  const b = $('sync-badge');
-  b.className = 'sync '+state;
-  b.textContent = state==='live'?'Live':state==='syncing'?'Syncing...':'Offline';
+  const b=$('sync-badge'); b.className='sync '+state;
+  b.textContent=state==='live'?'Live':state==='syncing'?'Syncing...':state==='queued'?`Queued (${offlineQueue.length})`:'Offline';
+}
+function markUnsaved(){unsaved=true;$('save-hint').innerHTML='<span class="unsaved-dot"></span> Unsaved — not yet synced';}
+function markSaved(){unsaved=false;$('save-hint').textContent='All changes saved';}
+function moveFocus(el,nxt){if(el.value&&nxt)$(nxt).focus();}
+
+// ── OFFLINE QUEUE ──────────────────────────────────────────────
+function saveQueue(){localStorage.setItem('masonryQueue',JSON.stringify(offlineQueue));}
+function updateQueueBanner(){
+  const b=$('queue-banner');
+  if(offlineQueue.length){
+    $('queue-banner-text').textContent=`📶 ${offlineQueue.length} reading${offlineQueue.length>1?'s':''} queued — waiting for connection`;
+    b.classList.add('show'); setSyncBadge('queued');
+  } else {
+    b.classList.remove('show');
+  }
 }
 
-function markUnsaved(){
-  unsaved = true;
-  $('save-hint').innerHTML = '<span class="unsaved-dot"></span> Unsaved changes — not yet synced';
-}
-
-function markSaved(){
-  unsaved = false;
-  $('save-hint').textContent = 'All changes saved';
+async function flushQueue(){
+  if(!offlineQueue.length) return;
+  setSyncBadge('syncing');
+  let sent=0;
+  for(let i=offlineQueue.length-1;i>=0;i--){
+    try{
+      const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(offlineQueue[i])});
+      const d=await res.json();
+      if(d.result==='ok'){readings.unshift(offlineQueue[i]);offlineQueue.splice(i,1);sent++;}
+    }catch(e){break;}
+  }
+  saveQueue(); updateQueueBanner();
+  if(sent) {toast(`${sent} queued reading${sent>1?'s':''} synced`); renderDashboard();}
+  if(!offlineQueue.length) setSyncBadge('live');
 }
 
 // ── LOAD ───────────────────────────────────────────────────────
 async function loadAll(){
   setSyncBadge('syncing');
-  try {
-    const res = await fetch(SCRIPT_URL);
-    const data = await res.json();
-    if(data.result === 'ok'){
-      config = data.config;
-      readings = (data.rows || []).reverse();
-      setSyncBadge('live');
-      applyConfig();
-      renderDashboard();
-      renderHistory();
-      populateChartSelect();
-    } else {
-      setSyncBadge('err');
-      toast('Could not load data from sheet', 'err');
-    }
-  } catch(e){
+  try{
+    const res=await fetch(SCRIPT_URL);
+    const data=await res.json();
+    if(data.result==='ok'){
+      config=data.config; readings=(data.rows||[]).reverse();
+      setSyncBadge('live'); applyConfig();
+      renderDashboard(); renderHistory(); populateChartSelect();
+      updateQueueBanner();
+      if(offlineQueue.length) flushQueue();
+    } else {setSyncBadge('err');toast('Could not load sheet data','err');}
+  }catch(e){
     setSyncBadge('err');
-    toast('Connection error — check Apps Script deployment', 'err');
+    toast('Offline — previous data shown','info');
+    updateQueueBanner();
   }
 }
 
 function applyConfig(){
-  updateLogVenues();
-  updateHistoryFilter();
+  updateLogVenues(); updateHistoryFilter();
+  checkQRParams();
   if(adminUnlocked) renderAdminPanels();
+}
+
+// ── QR PARAM PRE-FILL ──────────────────────────────────────────
+function checkQRParams(){
+  const params=new URLSearchParams(window.location.search);
+  const venue=params.get('venue'), eq=params.get('eq');
+  if(!venue||!eq||!config) return;
+  // Switch to log tab, set mobile selectors, hide selector row
+  switchTab('log');
+  const isMobile=window.innerWidth<=600;
+  if(isMobile){
+    $('ml-selectors').style.display='none';
+    setMobileEq(venue,eq);
+  } else {
+    const vSel=$('d-log-venue');
+    for(let i=0;i<vSel.options.length;i++) if(vSel.options[i].value===venue){vSel.selectedIndex=i;break;}
+    deskUpdateEq();
+    const eSel=$('d-log-eq');
+    for(let i=0;i<eSel.options.length;i++) if(eSel.options[i].value===eq){eSel.selectedIndex=i;break;}
+  }
+  // Clean URL
+  window.history.replaceState({},document.title,window.location.pathname);
 }
 
 // ── TABS ───────────────────────────────────────────────────────
 function switchTab(t){
-  const keys = ['dashboard','log','history','chart','admin'];
-  document.querySelectorAll('.tab-btn').forEach((el,i)=> el.classList.toggle('active', keys[i]===t));
-  document.querySelectorAll('.sec').forEach(s=> s.classList.remove('active'));
+  const keys=['dashboard','log','history','chart','admin'];
+  document.querySelectorAll('.tab-btn').forEach((el,i)=>el.classList.toggle('active',keys[i]===t));
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
   $('sec-'+t).classList.add('active');
-  if(t==='log') updateDatetime();
+  if(t==='log'){updateDatetime();updateLogVenues();}
   if(t==='chart') renderChart();
-  if(t==='admin' && adminUnlocked) renderAdminPanels();
+  if(t==='admin'&&adminUnlocked) renderAdminPanels();
 }
 
-// ── LOG FORM ───────────────────────────────────────────────────
 function updateDatetime(){
-  const n = new Date();
-  $('log-date').value = n.toLocaleDateString('en-GB');
-  $('log-time').value = n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const n=new Date();
+  const date=n.toLocaleDateString('en-GB');
+  const time=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if($('d-log-date')) $('d-log-date').value=date;
+  if($('d-log-time')) $('d-log-time').value=time;
 }
 
+// ── VENUE / EQ HELPERS ─────────────────────────────────────────
 function updateLogVenues(){
   if(!config) return;
-  const sel = $('log-venue'), cur = sel.value;
-  sel.innerHTML = config.venues.map(v=>`<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
-  updateEqList();
+  [$('d-log-venue'),$('m-log-venue')].forEach(sel=>{
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML=config.venues.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');
+  });
+  deskUpdateEq(); mobileUpdateEq();
 }
 
 function updateHistoryFilter(){
   if(!config) return;
-  const sel = $('filter-venue');
-  sel.innerHTML = '<option value="">All venues</option>' + config.venues.map(v=>`<option value="${v}">${v}</option>`).join('');
+  const sel=$('filter-venue');
+  sel.innerHTML='<option value="">All venues</option>'+config.venues.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
 }
 
-function updateEqList(){
+function deskUpdateEq(){
   if(!config) return;
-  const v = $('log-venue').value;
-  const sel = $('log-eq');
-  sel.innerHTML = (config.equipment[v]||[]).map(e=>`<option>${e.name}</option>`).join('');
-  clearAlert();
+  const v=$('d-log-venue').value;
+  const sel=$('d-log-eq');
+  sel.innerHTML=(config.equipment[v]||[]).map(e=>`<option value="${esc(e.name)}">${esc(e.name)}</option>`).join('');
+  $('d-alert-box').classList.remove('show');
+  $('d-corrective-wrap').classList.remove('show');
 }
 
-function getSelectedEq(){
-  if(!config) return null;
-  const v = $('log-venue').value;
-  const n = $('log-eq').value;
-  return (config.equipment[v]||[]).find(e=>e.name===n);
+function deskCheckTemp(){
+  const v=$('d-log-venue').value, n=$('d-log-eq').value;
+  const eq=(config.equipment[v]||[]).find(e=>e.name===n);
+  const t=parseFloat($('d-log-temp').value);
+  if(isNaN(t)||!eq){$('d-alert-box').classList.remove('show');$('d-corrective-wrap').classList.remove('show');return;}
+  if(t<eq.min||t>eq.max){
+    $('d-alert-msg').textContent=`Acceptable range: ${eq.min}°C – ${eq.max}°C. Corrective action required.`;
+    $('d-alert-box').classList.add('show');$('d-corrective-wrap').classList.add('show');
+  } else {$('d-alert-box').classList.remove('show');$('d-corrective-wrap').classList.remove('show');}
 }
 
-function clearAlert(){
-  $('alert-box').classList.remove('show');
-  $('corrective-wrap').classList.remove('show');
-}
-
-function checkTemp(){
-  const eq = getSelectedEq();
-  const t = parseFloat($('log-temp').value);
-  if(isNaN(t)||!eq){ clearAlert(); return; }
-  if(t < eq.min || t > eq.max){
-    $('alert-msg').textContent = `Acceptable range for ${eq.name}: ${eq.min}°C to ${eq.max}°C. Corrective action required.`;
-    $('alert-box').classList.add('show');
-    $('corrective-wrap').classList.add('show');
-  } else { clearAlert(); }
-}
-
-function moveFocus(el, nextId){ if(el.value && nextId) $(nextId).focus(); }
-
-async function submitReading(){
-  const eq = getSelectedEq();
-  const t = parseFloat($('log-temp').value);
-  if(!eq||isNaN(t)){ toast('Please enter a temperature.','err'); return; }
-  const pin = ['p1','p2','p3','p4'].map(id=>$(id).value).join('');
-  if(pin.length!==4){ toast('Enter your 4-digit PIN.','err'); return; }
-  const staffName = config.staff[pin];
-  if(!staffName){ toast('PIN not recognised.','err'); return; }
-  const isOut = t < eq.min || t > eq.max;
-  if(isOut && !$('corrective-note').value.trim()){ toast('Corrective action required for out-of-range readings.','err'); return; }
-  const payload = {
-    venue: $('log-venue').value, eq: eq.name, temp: t,
-    date: $('log-date').value, time: $('log-time').value,
-    status: isOut ? 'danger' : 'ok', pin: staffName,
-    corrective: $('corrective-note').value.trim(),
-    notes: $('log-notes').value.trim()
+// ── PHOTO HANDLING ─────────────────────────────────────────────
+function resizePhoto(file, cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;
+      let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      cb(canvas.toDataURL('image/jpeg',0.75));
+    };
+    img.src=e.target.result;
   };
-  const btn = $('submit-btn');
-  btn.disabled=true; btn.textContent='Saving...';
-  setSyncBadge('syncing');
-  try {
-    const res = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
-    const data = await res.json();
-    if(data.result==='ok'){
-      readings.unshift(payload);
-      ['log-temp','log-notes','corrective-note','p1','p2','p3','p4'].forEach(id=>$(id).value='');
-      clearAlert();
-      setSyncBadge('live');
-      toast(isOut ? `Saved — corrective action logged` : `${eq.name} — reading saved`);
-      renderDashboard();
-    } else { setSyncBadge('err'); toast('Save failed','err'); }
-  } catch(e){ setSyncBadge('err'); toast('Could not reach Google Sheets','err'); }
-  finally { btn.disabled=false; btn.textContent='Save reading'; }
+  reader.readAsDataURL(file);
 }
 
-// ── DASHBOARD ──────────────────────────────────────────────────
+function handlePhotoMobile(input){
+  if(!input.files[0]) return;
+  resizePhoto(input.files[0],data=>{
+    mobilePhotoData=data;
+    const preview=$('ml-photo-preview');
+    preview.src=data; preview.classList.add('show');
+  });
+}
+
+function handlePhotoDesk(input){
+  if(!input.files[0]) return;
+  resizePhoto(input.files[0],data=>{
+    deskPhotoData=data;
+    const preview=$('d-photo-preview');
+    preview.src=data; preview.classList.add('show');
+  });
+}
+
+// ── MOBILE NUMPAD ──────────────────────────────────────────────
+function mobileUpdateEq(){
+  if(!config) return;
+  const v=$('m-log-venue').value;
+  const sel=$('m-log-eq');
+  sel.innerHTML=(config.equipment[v]||[]).map(e=>`<option value="${esc(e.name)}">${esc(e.name)}</option>`).join('');
+  mobileEqChanged();
+}
+
+function mobileEqChanged(){
+  if(!config) return;
+  const v=$('m-log-venue').value, n=$('m-log-eq').value;
+  setMobileEq(v,n);
+}
+
+function setMobileEq(venue,eqName){
+  if(!config) return;
+  const eq=(config.equipment[venue]||[]).find(e=>e.name===eqName);
+  $('ml-venue-label').textContent=venue;
+  $('ml-eq-label').textContent=eqName;
+  $('ml-range-label').textContent=eq ? `${eq.min}°C – ${eq.max}°C` : '—';
+  mobileTemp='';
+  updateTempDisplay();
+}
+
+function updateTempDisplay(){
+  const display=$('ml-temp-display'), val=$('ml-temp-val');
+  val.textContent=mobileTemp||'—';
+  if(!mobileTemp){display.className='ml-temp-display';return;}
+  const t=parseFloat(mobileTemp);
+  const venue=$('m-log-venue').value, eqName=$('m-log-eq').value;
+  const eq=config?(config.equipment[venue]||[]).find(e=>e.name===eqName):null;
+  if(eq&&!isNaN(t)){
+    if(t<eq.min||t>eq.max){
+      display.className='ml-temp-display bad-color';
+      $('ml-alert-msg').textContent=`Range: ${eq.min}°C – ${eq.max}°C`;
+      $('ml-alert').classList.add('show');
+      $('ml-corrective-wrap').classList.add('show');
+    } else {
+      display.className='ml-temp-display ok-color';
+      $('ml-alert').classList.remove('show');
+      $('ml-corrective-wrap').classList.remove('show');
+    }
+  }
+}
+
+document.querySelectorAll('.ml-key').forEach(key=>{
+  key.addEventListener('click',()=>{
+    const v=key.dataset.val;
+    if(v==='del'){mobileTemp=mobileTemp.slice(0,-1);}
+    else if(v==='-'){mobileTemp=mobileTemp.startsWith('-')?mobileTemp.slice(1):'-'+mobileTemp;}
+    else if(v==='.'){if(!mobileTemp.includes('.')) mobileTemp+=v;}
+    else{if(mobileTemp.replace('-','').replace('.','').length<4) mobileTemp+=v;}
+    updateTempDisplay();
+  });
+});
+
+// ── SUBMIT (shared logic) ──────────────────────────────────────
+async function doSubmit(payload){
+  let queued=false;
+  try{
+    const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    const data=await res.json();
+    if(data.result!=='ok') throw new Error(data.message||'save failed');
+    readings.unshift(payload);
+    renderDashboard();
+  }catch(e){
+    offlineQueue.push(payload); saveQueue(); updateQueueBanner(); queued=true;
+  }
+  showConfirm(payload,queued);
+}
+
+function buildPayload(venue,eq,temp,date,time,staffName,corrective,notes,photo){
+  const isOut=temp<eq.min||temp>eq.max;
+  return {venue,eq:eq.name,temp,date,time,status:isOut?'danger':'ok',pin:staffName,corrective:corrective||'',notes:notes||'',photo:photo||''};
+}
+
+async function submitDesk(){
+  if(!config){toast('Config loading, try again','err');return;}
+  const venue=$('d-log-venue').value, eqName=$('d-log-eq').value;
+  const eq=(config.equipment[venue]||[]).find(e=>e.name===eqName);
+  const t=parseFloat($('d-log-temp').value);
+  if(!eq||isNaN(t)){toast('Please enter a temperature','err');return;}
+  const pin=['dp1','dp2','dp3','dp4'].map(id=>$(id).value).join('');
+  if(pin.length!==4){toast('Enter your 4-digit PIN','err');return;}
+  const staffName=config.staff[pin];
+  if(!staffName){toast('PIN not recognised','err');return;}
+  const isOut=t<eq.min||t>eq.max;
+  const ca=$('d-corrective-note').value.trim();
+  if(isOut&&!ca){toast('Corrective action required for out-of-range readings','err');return;}
+  const btn=$('d-submit-btn'); btn.disabled=true; btn.textContent='Saving...'; setSyncBadge('syncing');
+  const payload=buildPayload(venue,eq,t,$('d-log-date').value,$('d-log-time').value,staffName,ca,$('d-log-notes').value.trim(),deskPhotoData);
+  await doSubmit(payload);
+  ['d-log-temp','d-log-notes','d-corrective-note','dp1','dp2','dp3','dp4'].forEach(id=>$(id).value='');
+  $('d-alert-box').classList.remove('show');$('d-corrective-wrap').classList.remove('show');
+  deskPhotoData=null; $('d-photo-preview').classList.remove('show'); $('d-photo-preview').src='';
+  btn.disabled=false; btn.textContent='Save reading'; setSyncBadge(offlineQueue.length?'queued':'live');
+}
+
+async function submitMobile(){
+  if(!config){toast('Config loading, try again','err');return;}
+  const venue=$('m-log-venue').value, eqName=$('m-log-eq').value;
+  const eq=(config.equipment[venue]||[]).find(e=>e.name===eqName);
+  const t=parseFloat(mobileTemp);
+  if(!eq||isNaN(t)){toast('Enter a temperature','err');return;}
+  const pin=['mp1','mp2','mp3','mp4'].map(id=>$(id).value).join('');
+  if(pin.length!==4){toast('Enter your 4-digit PIN','err');return;}
+  const staffName=config.staff[pin];
+  if(!staffName){toast('PIN not recognised','err');return;}
+  const isOut=t<eq.min||t>eq.max;
+  const ca=$('ml-corrective-note').value.trim();
+  if(isOut&&!ca){toast('Corrective action required','err');return;}
+  const btn=$('m-submit-btn'); btn.disabled=true; btn.textContent='Saving...'; setSyncBadge('syncing');
+  const now=new Date();
+  const payload=buildPayload(venue,eq,t,now.toLocaleDateString('en-GB'),now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),staffName,ca,$('ml-log-notes').value.trim(),mobilePhotoData);
+  await doSubmit(payload);
+  mobileTemp=''; mobilePhotoData=null;
+  ['mp1','mp2','mp3','mp4','ml-corrective-note','ml-log-notes'].forEach(id=>$(id).value='');
+  $('ml-photo-preview').classList.remove('show'); $('ml-photo-preview').src='';
+  $('ml-alert').classList.remove('show'); $('ml-corrective-wrap').classList.remove('show');
+  updateTempDisplay();
+  btn.disabled=false; btn.textContent='Save reading'; setSyncBadge(offlineQueue.length?'queued':'live');
+}
+
+// ── CONFIRMATION SCREEN ────────────────────────────────────────
+function showConfirm(payload,queued){
+  const isOut=payload.status==='danger';
+  $('confirm-icon').textContent=isOut?'⚠️':'✅';
+  $('confirm-title').textContent=isOut?'Reading saved — out of range':'Reading saved';
+  $('confirm-sub').textContent=`${payload.venue} · ${payload.eq} · logged by ${payload.pin}`;
+  $('confirm-details').innerHTML=`
+    <div class="confirm-row"><span class="confirm-row-lbl">Temperature</span><span class="confirm-row-val ${isOut?'bad':'ok'}">${parseFloat(payload.temp).toFixed(1)}°C</span></div>
+    <div class="confirm-row"><span class="confirm-row-lbl">Date / Time</span><span class="confirm-row-val">${payload.date} ${payload.time}</span></div>
+    <div class="confirm-row"><span class="confirm-row-lbl">Status</span><span class="confirm-row-val ${isOut?'bad':'ok'}">${isOut?'Out of range':'In range'}</span></div>
+    ${payload.corrective?`<div class="confirm-row"><span class="confirm-row-lbl">Corrective action</span><span class="confirm-row-val" style="font-size:12px;white-space:normal;text-align:right;max-width:200px">${esc(payload.corrective)}</span></div>`:''}
+  `;
+  const qn=$('confirm-queue-note');
+  qn.style.display=queued?'block':'none';
+  $('confirm-screen').classList.add('show');
+}
+
+function closeConfirm(){
+  $('confirm-screen').classList.remove('show');
+  mobileTemp=''; updateTempDisplay();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function isOverdue(venue, eqName){
+  if(!config) return false;
+  const eq=(config.equipment[venue]||[]).find(e=>e.name===eqName);
+  if(!eq||!eq.checkEveryHours) return false;
+  const last=readings.find(r=>r.venue===venue&&r.eq===eqName);
+  if(!last) return true;
+  const [d,m,y]=last.date.split('/');
+  const [hh,mm]=last.time.split(':');
+  const lastTime=new Date(y,m-1,d,hh,mm);
+  const hoursAgo=(Date.now()-lastTime.getTime())/3600000;
+  return hoursAgo>eq.checkEveryHours;
+}
+
 function renderDashboard(){
   if(!config) return;
-  const today = new Date().toLocaleDateString('en-GB');
-  const todayR = readings.filter(r=>r.date===today);
-  const outAll = readings.filter(r=>r.status==='danger').length;
-  const outToday = todayR.filter(r=>r.status==='danger').length;
-  $('m-total').textContent = readings.length;
-  $('m-today').textContent = todayR.length;
+  const today=new Date().toLocaleDateString('en-GB');
+  const todayR=readings.filter(r=>r.date===today);
+  const outToday=todayR.filter(r=>r.status==='danger').length;
+  let overdueCount=0;
+  config.venues.forEach(v=>(config.equipment[v]||[]).forEach(eq=>{if(isOverdue(v,eq.name))overdueCount++;}));
+  $('m-total').textContent=readings.length;
+  $('m-today').textContent=todayR.length;
   const mOut=$('m-out'); mOut.textContent=outToday; mOut.className='metric-val '+(outToday?'bad':'ok');
-  const mInc=$('m-inc'); mInc.textContent=outAll; mInc.className='metric-val '+(outAll?'warn':'ok');
-  $('dashboard-venues').innerHTML = config.venues.map(venue=>{
-    const eqs = config.equipment[venue]||[];
+  const mOv=$('m-overdue'); mOv.textContent=overdueCount; mOv.className='metric-val '+(overdueCount?'warn':'ok');
+  $('dashboard-venues').innerHTML=config.venues.map(venue=>{
+    const eqs=config.equipment[venue]||[];
     return `<div class="venue-block">
-      <div class="venue-label">${venue}</div>
+      <div class="venue-label">${esc(venue)}</div>
       <div class="eq-grid">${eqs.map(eq=>{
-        const last = readings.find(r=>r.venue===venue && r.eq===eq.name);
-        const temp = last ? parseFloat(last.temp) : null;
-        const st = temp!==null ? (temp<eq.min||temp>eq.max?'bad':'ok') : 'none';
+        const last=readings.find(r=>r.venue===venue&&r.eq===eq.name);
+        const temp=last?parseFloat(last.temp):null;
+        const ood=isOverdue(venue,eq.name);
+        const st=temp!==null?(temp<eq.min||temp>eq.max?'bad':ood?'overdue':'ok'):ood?'overdue':'none';
+        const tc=temp!==null?(temp<eq.min||temp>eq.max?'bad':ood?'overdue':'ok'):ood?'overdue':'none';
         return `<div class="eq-card ${st}">
-          <div class="eq-name">${eq.name}</div>
-          <div class="eq-temp ${st}">${temp!==null?temp.toFixed(1)+'°':'—'}</div>
+          <div class="eq-name">${esc(eq.name)}</div>
+          <div class="eq-temp ${tc}">${temp!==null?temp.toFixed(1)+'°':'—'}</div>
           <div class="eq-range">${eq.min}° – ${eq.max}°C</div>
-          <div class="eq-when">${last ? last.date+' '+last.time : 'No readings yet'}</div>
+          <div class="eq-when">${last?last.date+' '+last.time:'No readings yet'}</div>
+          ${ood?`<div class="overdue-pill">CHECK DUE</div>`:''}
         </div>`;
       }).join('')}</div>
     </div>`;
   }).join('');
 }
 
-// ── HISTORY ────────────────────────────────────────────────────
+// ── HISTORY ───────────────────────────────────────────────────
 function renderHistory(){
   const venue=$('filter-venue').value, status=$('filter-status').value;
   const rows=readings.filter(r=>(!venue||r.venue===venue)&&(!status||r.status===status));
   const tbody=$('history-body');
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="8" class="empty">No readings found</td></tr>';return;}
+  const colCount = adminUnlocked ? 9 : 8;
+  // Show/hide delete column header
+  const delHdr = $('del-col-header');
+  if(delHdr) delHdr.style.display = adminUnlocked ? '' : 'none';
+  if(!rows.length){tbody.innerHTML=`<tr><td colspan="${colCount}" class="empty">No readings found</td></tr>`;return;}
   tbody.innerHTML=rows.map(r=>`<tr>
     <td>${r.date}</td><td style="font-family:var(--mono)">${r.time}</td>
-    <td><span class="vtag">${r.venue}</span></td><td>${r.eq}</td>
+    <td><span class="vtag">${esc(r.venue)}</span></td><td>${esc(r.eq)}</td>
     <td><span class="temp-val ${r.status==='danger'?'bad':'ok'}">${parseFloat(r.temp).toFixed(1)}°C</span></td>
     <td><span class="badge ${r.status==='ok'?'ok':'bad'}">${r.status==='ok'?'In range':'Out of range'}</span></td>
-    <td style="font-family:var(--mono)">${r.pin}</td>
-    <td>${r.corrective||r.notes||'—'}</td>
+    <td style="font-family:var(--mono)">${esc(r.pin)}</td>
+    <td>${esc(r.corrective||r.notes||'—')}</td>
+    ${adminUnlocked ? `<td><button class="btn-icon del-reading-btn" data-row="${r._rowIndex}" data-label="${esc(r.date+' '+r.time+' — '+r.eq)}" style="color:var(--red);padding:3px 7px;font-size:13px">✕</button></td>` : ''}
   </tr>`).join('');
+  // Attach delete listeners
+  if(adminUnlocked){
+    tbody.querySelectorAll('.del-reading-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const rowIdx = parseInt(btn.dataset.row);
+        const label  = btn.dataset.label;
+        $('modal-title').textContent = 'Delete reading';
+        $('modal-sub').textContent   = `Permanently delete "${label}"? This removes the row from Google Sheets and cannot be undone.`;
+        $('modal-ok').textContent    = 'Delete';
+        $('modal-ok').onclick = ()=>{ deleteReading(rowIdx, btn); closeModal(); };
+        $('confirm-modal').classList.add('show');
+      });
+    });
+  }
 }
 
-// ── CHART ──────────────────────────────────────────────────────
+async function deleteReading(rowIndex, btn){
+  if(!config){toast('Config not loaded','err');return;}
+  btn.disabled=true; btn.textContent='…';
+  setSyncBadge('syncing');
+  try{
+    const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'deleteReading',
+      adminPin:config.adminPin,
+      rowIndex
+    })});
+    const data=await res.json();
+    if(data.result==='ok'){
+      // Remove from local readings array by _rowIndex
+      const idx=readings.findIndex(r=>r._rowIndex===rowIndex);
+      if(idx>-1) readings.splice(idx,1);
+      // Recalculate remaining row indices (rows above deleted one shift down by 1)
+      readings.forEach(r=>{ if(r._rowIndex>rowIndex) r._rowIndex--; });
+      setSyncBadge('live');
+      toast('Reading deleted');
+      renderHistory();
+      renderDashboard();
+    } else {
+      setSyncBadge('err');
+      toast('Delete failed: '+(data.message||'unknown error'),'err');
+      btn.disabled=false; btn.textContent='✕';
+    }
+  }catch(e){
+    setSyncBadge('err');
+    toast('Connection error — could not delete','err');
+    btn.disabled=false; btn.textContent='✕';
+  }
+}
+
+// ── CHART ─────────────────────────────────────────────────────
 function populateChartSelect(){
   if(!config) return;
   const sel=$('chart-eq'); sel.innerHTML='';
@@ -680,11 +1096,7 @@ function renderChart(){
   const labels=rows.map(r=>`${r.date} ${r.time}`);
   const temps=rows.map(r=>parseFloat(r.temp));
   const ptColors=rows.map(r=>r.status==='danger'?'#E24B4A':'#1A9E72');
-  $('chart-legend').innerHTML=`
-    <span><i style="background:#1A9E72"></i>In range</span>
-    <span><i style="background:#E24B4A"></i>Out of range</span>
-    ${eq?`<span>Range: ${eq.min}° – ${eq.max}°C</span>`:''}
-  `;
+  $('chart-legend').innerHTML=`<span><i style="background:#1A9E72"></i>In range</span><span><i style="background:#E24B4A"></i>Out of range</span>${eq?`<span>Range: ${eq.min}° – ${eq.max}°C</span>`:''}`;
   const ctx=$('trend-chart');
   if(trendChart) trendChart.destroy();
   trendChart=new Chart(ctx,{type:'line',data:{labels,datasets:[
@@ -701,7 +1113,7 @@ function renderChart(){
   });
 }
 
-// ── EXPORT ─────────────────────────────────────────────────────
+// ── EXPORT ────────────────────────────────────────────────────
 function exportCSV(){
   const h=['Date','Time','Venue','Equipment','Temperature (C)','Status','Staff','Corrective Action','Notes'];
   const rows=readings.map(r=>[r.date,r.time,r.venue,r.eq,r.temp,r.status==='ok'?'In range':'Out of range',r.pin,r.corrective,r.notes].map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(','));
@@ -710,29 +1122,49 @@ function exportCSV(){
   a.download='masonry_temp_log.csv'; a.click();
 }
 
-// ── ADMIN AUTH ─────────────────────────────────────────────────
-function adminPinFocus(el, nextId){
-  if(el.value && nextId) $(nextId).focus();
-  if(!nextId) unlockAdmin();
+// ── QR CODES ──────────────────────────────────────────────────
+function generateQRCodes(){
+  const base=($('qr-base-url').value||APP_URL).replace(/\/$/,'');
+  const previewGrid=$('qr-preview-grid');
+  const printGrid=$('print-qr-grid');
+  previewGrid.innerHTML=''; printGrid.innerHTML='';
+  if(!config){toast('Config not loaded','err');return;}
+  config.venues.forEach(venue=>{
+    (config.equipment[venue]||[]).forEach(eq=>{
+      const url=`${base}?venue=${encodeURIComponent(venue)}&eq=${encodeURIComponent(eq.name)}`;
+      [previewGrid,printGrid].forEach(grid=>{
+        const card=document.createElement('div');
+        card.className='qr-card';
+        card.innerHTML=`<div class="qr-card-venue">${esc(venue)}</div><div class="qr-card-name">${esc(eq.name)}</div><div class="qr-card-range">${eq.min}°C – ${eq.max}°C</div><div class="qr-box" id="qr-${grid.id}-${esc(venue)}-${esc(eq.name).replace(/\s/g,'_')}"></div><div class="qr-url">${url}</div>`;
+        grid.appendChild(card);
+        const qrEl=card.querySelector('.qr-box');
+        new QRCode(qrEl,{text:url,width:128,height:128,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      });
+    });
+  });
+  $('qr-print-actions').style.display='flex';
+  toast('QR codes generated — scroll down to print');
 }
 
+// ── ADMIN AUTH ────────────────────────────────────────────────
+function adminPinFocus(el,nxt){if(el.value&&nxt)$(nxt).focus();if(!nxt)unlockAdmin();}
+
 function unlockAdmin(){
-  if(!config){ toast('Still loading config — try again in a moment','info'); return; }
+  if(!config){toast('Still loading config','info');return;}
   const pin=['ap1','ap2','ap3','ap4'].map(id=>$(id).value).join('');
-  if(pin === config.adminPin){
+  if(pin===config.adminPin){
     adminUnlocked=true;
     $('admin-lock').style.display='none';
     $('admin-panels').classList.add('unlocked');
     renderAdminPanels();
   } else {
     ['ap1','ap2','ap3','ap4'].forEach(id=>$(id).value='');
-    $('ap1').focus();
-    toast('Incorrect admin PIN','err');
+    $('ap1').focus(); toast('Incorrect admin PIN','err');
   }
 }
 
 function lockAdmin(){
-  if(unsaved && !confirm('You have unsaved changes that have not been synced. Lock anyway?')) return;
+  if(unsaved&&!confirm('Unsaved changes will not be synced. Lock anyway?')) return;
   adminUnlocked=false;
   ['ap1','ap2','ap3','ap4'].forEach(id=>$(id).value='');
   $('admin-lock').style.display='flex';
@@ -740,220 +1172,208 @@ function lockAdmin(){
   markSaved();
 }
 
-// ── PUSH CONFIG TO SHEET ────────────────────────────────────────
 async function pushConfig(){
-  const btn=$('save-btn');
-  btn.disabled=true; btn.textContent='Syncing...';
+  const btn=$('save-btn'); btn.disabled=true; btn.textContent='Syncing...';
   showOverlay('Pushing config to all devices...');
   setSyncBadge('syncing');
-  try {
-    const res = await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
-      action:'saveConfig',
-      adminPin: config.adminPin,
-      config: config
-    })});
-    const data = await res.json();
-    if(data.result==='ok'){
-      setSyncBadge('live');
-      markSaved();
-      toast('Config saved — all devices will pick it up on next load');
-      applyConfig();
-    } else {
-      setSyncBadge('err');
-      toast('Sync failed: '+(data.message||'unknown error'),'err');
-    }
-  } catch(e){
-    setSyncBadge('err');
-    toast('Could not reach Google Sheets','err');
-  } finally {
-    btn.disabled=false; btn.textContent='Save & sync to all devices';
-    hideOverlay();
-  }
+  try{
+    const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'saveConfig',adminPin:config.adminPin,config})});
+    const data=await res.json();
+    if(data.result==='ok'){setSyncBadge('live');markSaved();toast('Config saved — all devices updated');applyConfig();}
+    else{setSyncBadge('err');toast('Sync failed: '+(data.message||'unknown error'),'err');}
+  }catch(e){setSyncBadge('err');toast('Could not reach Google Sheets','err');}
+  finally{btn.disabled=false;btn.textContent='Save & sync to all devices';hideOverlay();}
 }
 
-// ── ADMIN RENDER ───────────────────────────────────────────────
-function renderAdminPanels(){
-  renderStaffList();
-  buildEqVenueTabs();
-  renderVenueList();
-}
+// ── ADMIN RENDER ──────────────────────────────────────────────
+function renderAdminPanels(){renderStaffList();buildEqVenueTabs();renderVenueList();}
 
 function renderStaffList(){
   const entries=Object.entries(config.staff);
-  $('staff-list').innerHTML = entries.length ? entries.map(([pin,name])=>`
+  $('staff-list').innerHTML=entries.length?entries.map(([pin,name])=>`
     <div class="admin-row">
-      <div class="admin-row-info">
-        <span class="admin-row-name">${name}</span>
-        <span class="admin-chip">PIN: ${pin}</span>
-      </div>
-      <button class="btn-icon" onclick="confirmDelete('staff','${pin}','${name}')">✕</button>
-    </div>`).join('') : '<div class="empty">No staff added</div>';
+      <div class="admin-row-info"><span class="admin-row-name">${esc(name)}</span><span class="admin-chip">PIN: ${esc(pin)}</span></div>
+      <button class="btn-icon" data-pin="${esc(pin)}" data-name="${esc(name)}">✕</button>
+    </div>`).join(''):'<div class="empty">No staff added</div>';
+  $('staff-list').querySelectorAll('.btn-icon').forEach(btn=>{
+    btn.addEventListener('click',()=>confirmDelete('staff',btn.dataset.pin,btn.dataset.name));
+  });
 }
 
 function buildEqVenueTabs(){
   const tabsEl=$('eq-venue-tabs'), panelsEl=$('eq-venue-panels');
   tabsEl.innerHTML=''; panelsEl.innerHTML='';
-  if(!activeEqVenue || !config.venues.includes(activeEqVenue)) activeEqVenue=config.venues[0];
+  if(!activeEqVenue||!config.venues.includes(activeEqVenue)) activeEqVenue=config.venues[0];
   config.venues.forEach(v=>{
     const btn=document.createElement('button');
     btn.className='venue-tab-btn'+(v===activeEqVenue?' active':'');
-    btn.textContent=v; btn.onclick=()=>{ activeEqVenue=v; buildEqVenueTabs(); };
+    btn.textContent=v; btn.onclick=()=>{activeEqVenue=v;buildEqVenueTabs();};
     tabsEl.appendChild(btn);
     const panel=document.createElement('div');
-    panel.id='eq-panel-'+v; panel.style.display=v===activeEqVenue?'block':'none';
+    panel.style.display=v===activeEqVenue?'block':'none';
     panel.innerHTML=`
       <div class="add-form open" style="margin-bottom:12px">
-        <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Add equipment — ${v}</div>
-        <div class="add-form-grid g3">
-          <div class="form-group"><label class="form-lbl">Name</label><input type="text" id="new-eq-name-${v}" placeholder="e.g. Prep fridge"></div>
-          <div class="form-group"><label class="form-lbl">Min °C</label><input type="number" id="new-eq-min-${v}" step="0.5" placeholder="1"></div>
-          <div class="form-group"><label class="form-lbl">Max °C</label><input type="number" id="new-eq-max-${v}" step="0.5" placeholder="5"></div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Add equipment — ${esc(v)}</div>
+        <div class="add-form-grid g4">
+          <div class="form-group"><label class="form-lbl">Name</label><input type="text" id="new-eq-name-${esc(v)}" placeholder="e.g. Prep fridge"></div>
+          <div class="form-group"><label class="form-lbl">Min °C</label><input type="number" id="new-eq-min-${esc(v)}" step="0.5" placeholder="1"></div>
+          <div class="form-group"><label class="form-lbl">Max °C</label><input type="number" id="new-eq-max-${esc(v)}" step="0.5" placeholder="5"></div>
+          <div class="form-group"><label class="form-lbl">Check every (hrs)</label><input type="number" id="new-eq-hrs-${esc(v)}" step="1" min="1" placeholder="e.g. 4"></div>
         </div>
-        <div class="add-form-actions">
-          <button class="btn-success" onclick="addEquipment('${v}')">Add equipment</button>
-        </div>
+        <div class="add-form-actions"><button class="btn-success new-eq-btn" data-venue="${esc(v)}">Add equipment</button></div>
       </div>
-      <div class="admin-list" id="eq-list-${v}"></div>`;
+      <div class="admin-list" id="eq-list-${esc(v)}"></div>`;
+    panel.querySelector('.new-eq-btn').addEventListener('click',e=>addEquipment(e.target.dataset.venue));
     panelsEl.appendChild(panel);
     renderEqList(v);
   });
 }
 
 function renderEqList(venue){
-  const el=$('eq-list-'+venue);
-  if(!el) return;
+  const el=$('eq-list-'+esc(venue)); if(!el) return;
   const eqs=config.equipment[venue]||[];
-  if(!eqs.length){ el.innerHTML='<div class="empty">No equipment added</div>'; return; }
+  if(!eqs.length){el.innerHTML='<div class="empty">No equipment added</div>';return;}
   el.innerHTML=eqs.map((eq,i)=>`
     <div class="admin-row">
       <div class="admin-row-info">
-        <span class="admin-row-name">${eq.name}</span>
+        <span class="admin-row-name">${esc(eq.name)}</span>
         <span class="admin-chip">Min: ${eq.min}°C</span>
         <span class="admin-chip">Max: ${eq.max}°C</span>
+        ${eq.checkEveryHours?`<span class="admin-chip warn">Every ${eq.checkEveryHours}h</span>`:'<span class="admin-chip">No schedule</span>'}
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0">
-        <button class="btn-icon" onclick="toggleEqEdit('${venue}',${i})">✎</button>
-        <button class="btn-icon" onclick="confirmDelete('eq','${venue}|${i}','${eq.name}')">✕</button>
+        <button class="btn-icon eq-edit-btn" data-venue="${esc(venue)}" data-idx="${i}">✎</button>
+        <button class="btn-icon eq-del-btn" data-venue="${esc(venue)}" data-idx="${i}" data-name="${esc(eq.name)}">✕</button>
       </div>
     </div>
-    <div class="add-form" id="eq-edit-${venue}-${i}">
-      <div class="add-form-grid g3">
-        <div class="form-group"><label class="form-lbl">Name</label><input type="text" id="ename-${venue}-${i}" value="${eq.name}"></div>
-        <div class="form-group"><label class="form-lbl">Min °C</label><input type="number" id="emin-${venue}-${i}" value="${eq.min}" step="0.5"></div>
-        <div class="form-group"><label class="form-lbl">Max °C</label><input type="number" id="emax-${venue}-${i}" value="${eq.max}" step="0.5"></div>
+    <div class="add-form" id="eq-edit-${esc(venue)}-${i}">
+      <div class="add-form-grid g4">
+        <div class="form-group"><label class="form-lbl">Name</label><input type="text" id="ename-${esc(venue)}-${i}" value="${esc(eq.name)}"></div>
+        <div class="form-group"><label class="form-lbl">Min °C</label><input type="number" id="emin-${esc(venue)}-${i}" value="${eq.min}" step="0.5"></div>
+        <div class="form-group"><label class="form-lbl">Max °C</label><input type="number" id="emax-${esc(venue)}-${i}" value="${eq.max}" step="0.5"></div>
+        <div class="form-group"><label class="form-lbl">Check every (hrs)</label><input type="number" id="ehrs-${esc(venue)}-${i}" value="${eq.checkEveryHours||''}" step="1" min="1" placeholder="optional"></div>
       </div>
       <div class="add-form-actions">
-        <button class="btn-sm" onclick="toggleEqEdit('${venue}',${i})">Cancel</button>
-        <button class="btn-success" onclick="saveEqEdit('${venue}',${i})">Save</button>
+        <button class="btn-sm eq-cancel-btn" data-venue="${esc(venue)}" data-idx="${i}">Cancel</button>
+        <button class="btn-success eq-save-btn" data-venue="${esc(venue)}" data-idx="${i}">Save</button>
       </div>
     </div>`).join('');
+  el.querySelectorAll('.eq-edit-btn,.eq-cancel-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const form=$('eq-edit-'+esc(btn.dataset.venue)+'-'+btn.dataset.idx);
+      if(form) form.classList.toggle('open');
+    });
+  });
+  el.querySelectorAll('.eq-save-btn').forEach(btn=>btn.addEventListener('click',()=>saveEqEdit(btn.dataset.venue,parseInt(btn.dataset.idx))));
+  el.querySelectorAll('.eq-del-btn').forEach(btn=>btn.addEventListener('click',()=>confirmDelete('eq',btn.dataset.venue+'|'+btn.dataset.idx,btn.dataset.name)));
 }
 
 function renderVenueList(){
   $('venue-list').innerHTML=config.venues.map((v,i)=>`
     <div class="admin-row">
-      <div class="admin-row-info">
-        <span class="admin-row-name">${v}</span>
-        <span class="admin-chip">${(config.equipment[v]||[]).length} units</span>
-      </div>
-      ${config.venues.length>1
-        ? `<button class="btn-icon" onclick="confirmDelete('venue','${i}','${v}')">✕</button>`
-        : `<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">last venue</span>`}
+      <div class="admin-row-info"><span class="admin-row-name">${esc(v)}</span><span class="admin-chip">${(config.equipment[v]||[]).length} units</span></div>
+      ${config.venues.length>1?`<button class="btn-icon venue-del-btn" data-idx="${i}" data-name="${esc(v)}">✕</button>`:`<span style="font-size:11px;font-family:var(--mono);color:var(--text3)">last venue</span>`}
     </div>`).join('');
+  $('venue-list').querySelectorAll('.venue-del-btn').forEach(btn=>btn.addEventListener('click',()=>confirmDelete('venue',btn.dataset.idx,btn.dataset.name)));
 }
 
-// ── ADMIN ACTIONS ──────────────────────────────────────────────
-function toggleForm(id){ $(id).classList.toggle('open'); }
-function toggleEqEdit(venue, i){ $('eq-edit-'+venue+'-'+i).classList.toggle('open'); }
+// ── ADMIN ACTIONS ─────────────────────────────────────────────
+function toggleForm(id){$(id).classList.toggle('open');}
 
 function changeAdminPin(){
   const np=$('new-apin').value, cp=$('confirm-apin').value;
-  if(np.length!==4||!/^\d+$/.test(np)){ toast('PIN must be exactly 4 digits','err'); return; }
-  if(np!==cp){ toast('PINs do not match','err'); return; }
-  config.adminPin=np;
-  $('new-apin').value=''; $('confirm-apin').value='';
-  toggleForm('form-adminpin');
-  markUnsaved();
-  toast('Admin PIN updated — save to sync');
+  if(np.length!==4||!/^\d+$/.test(np)){toast('PIN must be exactly 4 digits','err');return;}
+  if(np!==cp){toast('PINs do not match','err');return;}
+  config.adminPin=np; $('new-apin').value=''; $('confirm-apin').value='';
+  toggleForm('form-adminpin'); markUnsaved(); toast('Admin PIN updated — save to sync');
 }
 
 function addStaff(){
-  const name=$('new-staff-name').value.trim();
-  const pin=$('new-staff-pin').value.trim();
-  if(!name){ toast('Enter a staff name','err'); return; }
-  if(pin.length!==4||!/^\d+$/.test(pin)){ toast('PIN must be exactly 4 digits','err'); return; }
-  if(config.staff[pin]){ toast(`PIN ${pin} already assigned to ${config.staff[pin]}`, 'err'); return; }
-  config.staff[pin]=name;
-  $('new-staff-name').value=''; $('new-staff-pin').value='';
-  toggleForm('form-staff');
-  markUnsaved(); renderStaffList();
-  toast(`${name} added — save to sync`);
+  const name=$('new-staff-name').value.trim(), pin=$('new-staff-pin').value.trim();
+  if(!name){toast('Enter a staff name','err');return;}
+  if(pin.length!==4||!/^\d+$/.test(pin)){toast('PIN must be exactly 4 digits','err');return;}
+  if(config.staff[pin]){toast(`PIN ${pin} already assigned to ${config.staff[pin]}`,'err');return;}
+  config.staff[pin]=name; $('new-staff-name').value=''; $('new-staff-pin').value='';
+  toggleForm('form-staff'); markUnsaved(); renderStaffList(); toast(`${name} added — save to sync`);
 }
 
 function addEquipment(venue){
-  const name=$('new-eq-name-'+venue).value.trim();
-  const min=parseFloat($('new-eq-min-'+venue).value);
-  const max=parseFloat($('new-eq-max-'+venue).value);
-  if(!name){ toast('Enter equipment name','err'); return; }
-  if(isNaN(min)||isNaN(max)){ toast('Enter valid temperatures','err'); return; }
-  if(min>=max){ toast('Min must be less than max','err'); return; }
+  const vk=esc(venue);
+  const name=$('new-eq-name-'+vk).value.trim();
+  const min=parseFloat($('new-eq-min-'+vk).value);
+  const max=parseFloat($('new-eq-max-'+vk).value);
+  const hrs=parseInt($('new-eq-hrs-'+vk).value)||null;
+  if(!name){toast('Enter equipment name','err');return;}
+  if(isNaN(min)||isNaN(max)){toast('Enter valid temperatures','err');return;}
+  if(min>=max){toast('Min must be less than max','err');return;}
   if(!config.equipment[venue]) config.equipment[venue]=[];
-  config.equipment[venue].push({name,min,max});
-  $('new-eq-name-'+venue).value=''; $('new-eq-min-'+venue).value=''; $('new-eq-max-'+venue).value='';
-  markUnsaved(); renderEqList(venue);
-  toast(`${name} added — save to sync`);
+  config.equipment[venue].push({name,min,max,...(hrs?{checkEveryHours:hrs}:{})});
+  $('new-eq-name-'+vk).value=''; $('new-eq-min-'+vk).value=''; $('new-eq-max-'+vk).value=''; $('new-eq-hrs-'+vk).value='';
+  markUnsaved(); renderEqList(venue); toast(`${name} added — save to sync`);
 }
 
-function saveEqEdit(venue, i){
-  const name=$('ename-'+venue+'-'+i).value.trim();
-  const min=parseFloat($('emin-'+venue+'-'+i).value);
-  const max=parseFloat($('emax-'+venue+'-'+i).value);
-  if(!name){ toast('Name cannot be empty','err'); return; }
-  if(isNaN(min)||isNaN(max)){ toast('Enter valid temperatures','err'); return; }
-  if(min>=max){ toast('Min must be less than max','err'); return; }
-  config.equipment[venue][i]={name,min,max};
-  toggleEqEdit(venue,i);
-  markUnsaved(); renderEqList(venue);
-  toast(`${name} updated — save to sync`);
+function saveEqEdit(venue,i){
+  const vk=esc(venue);
+  const name=$('ename-'+vk+'-'+i).value.trim();
+  const min=parseFloat($('emin-'+vk+'-'+i).value);
+  const max=parseFloat($('emax-'+vk+'-'+i).value);
+  const hrs=parseInt($('ehrs-'+vk+'-'+i).value)||null;
+  if(!name){toast('Name cannot be empty','err');return;}
+  if(isNaN(min)||isNaN(max)){toast('Enter valid temperatures','err');return;}
+  if(min>=max){toast('Min must be less than max','err');return;}
+  config.equipment[venue][i]={name,min,max,...(hrs?{checkEveryHours:hrs}:{})};
+  markUnsaved(); renderEqList(venue); toast(`${name} updated — save to sync`);
 }
 
 function addVenue(){
   const name=$('new-venue-name').value.trim();
-  if(!name){ toast('Enter a venue name','err'); return; }
-  if(config.venues.includes(name)){ toast('Venue already exists','err'); return; }
-  config.venues.push(name);
-  config.equipment[name]=[];
-  $('new-venue-name').value='';
-  toggleForm('form-venue');
-  markUnsaved(); buildEqVenueTabs(); renderVenueList();
-  toast(`${name} added — save to sync`);
+  if(!name){toast('Enter a venue name','err');return;}
+  if(config.venues.includes(name)){toast('Venue already exists','err');return;}
+  config.venues.push(name); config.equipment[name]=[];
+  $('new-venue-name').value=''; toggleForm('form-venue');
+  markUnsaved(); buildEqVenueTabs(); renderVenueList(); toast(`${name} added — save to sync`);
 }
 
-// ── CONFIRM MODAL ──────────────────────────────────────────────
-function confirmDelete(type, key, label){
-  $('modal-title').textContent = 'Delete '+type;
-  $('modal-sub').textContent = `Remove "${label}"? This cannot be undone.`;
-  $('modal-ok').onclick = ()=>{ doDelete(type,key); closeModal(); };
+// ── CONFIRM MODAL ─────────────────────────────────────────────
+function confirmDelete(type,key,label){
+  $('modal-title').textContent='Delete '+type;
+  $('modal-sub').textContent=`Remove "${label}"? This cannot be undone.`;
+  $('modal-ok').onclick=()=>{doDelete(type,key);closeModal();};
   $('confirm-modal').classList.add('show');
 }
-function closeModal(){ $('confirm-modal').classList.remove('show'); }
-
-function doDelete(type, key){
-  if(type==='staff'){
-    delete config.staff[key]; markUnsaved(); renderStaffList(); toast('Removed — save to sync');
-  } else if(type==='eq'){
-    const [venue,idx]=key.split('|');
+function closeModal(){$('confirm-modal').classList.remove('show');}
+function doDelete(type,key){
+  if(type==='staff'){delete config.staff[key];markUnsaved();renderStaffList();toast('Removed — save to sync');}
+  else if(type==='eq'){
+    const[venue,idx]=key.split('|');
     config.equipment[venue].splice(parseInt(idx),1);
-    markUnsaved(); renderEqList(venue); toast('Removed — save to sync');
+    markUnsaved();renderEqList(venue);toast('Removed — save to sync');
   } else if(type==='venue'){
     const v=config.venues.splice(parseInt(key),1)[0];
     delete config.equipment[v];
     if(activeEqVenue===v) activeEqVenue=config.venues[0]||null;
-    markUnsaved(); buildEqVenueTabs(); renderVenueList(); toast('Venue removed — save to sync');
+    markUnsaved();buildEqVenueTabs();renderVenueList();toast('Venue removed — save to sync');
   }
 }
 
-// ── INIT ───────────────────────────────────────────────────────
+// ── SERVICE WORKER ────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  const SW=`
+const CACHE='masonry-v1';
+const ASSETS=['./','/index.html','https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap','https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js','https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));});
+self.addEventListener('fetch',e=>{
+  if(e.request.url.includes('script.google.com')||e.request.method==='POST') return;
+  e.respondWith(fetch(e.request).then(r=>{const rc=r.clone();caches.open(CACHE).then(c=>c.put(e.request,rc));return r;}).catch(()=>caches.match(e.request)));
+});`;
+  const blob=new Blob([SW],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+updateDatetime();
+updateQueueBanner();
 loadAll();
 </script>
 </body>
