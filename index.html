@@ -98,8 +98,8 @@ input[readonly]{color:var(--text2);cursor:default}
 
 /* ── PIN ── */
 .pin-wrap{margin-top:20px}
-.pin-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:nowrap}
-.pin-box{width:44px;height:48px;text-align:center;font-size:20px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .15s;padding:0;flex-shrink:0}
+.pin-row{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:nowrap;width:fit-content}
+.pin-box{width:44px;min-width:44px;max-width:44px;height:48px;text-align:center;font-size:20px;font-family:var(--mono);font-weight:500;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text);outline:none;transition:border-color .15s;padding:0;flex-shrink:0}
 .pin-box:focus{border-color:rgba(255,255,255,.25)}
 .pin-hint{font-size:11px;font-family:var(--mono);color:var(--text3);margin-left:4px;white-space:nowrap}
 
@@ -162,7 +162,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 .ml-photo-btn:active{background:var(--bg4)}
 .ml-pin-section{margin-top:12px;padding-top:14px;border-top:1px solid var(--border2)}
 .ml-pin-boxes{display:flex;gap:8px;justify-content:center;margin:10px 0 16px;flex-wrap:nowrap}
-.ml-pin-box{width:56px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none;padding:0;flex-shrink:0;-webkit-appearance:none}
+.ml-pin-box{width:56px;min-width:56px;max-width:56px;height:56px;text-align:center;font-size:22px;font-family:var(--mono);background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none;padding:0;flex-shrink:0;-webkit-appearance:none}
 .ml-pin-box:focus{border-color:rgba(255,255,255,.3)}
 
 /* ── CONFIRMATION SCREEN ── */
