@@ -394,7 +394,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
 
       <!-- Venue / Equipment selectors (shown when no QR params) -->
-      <div id="ml-selectors" style="margin-bottom:16px;display:none">
+      <div id="ml-selectors" style="margin-bottom:16px;display:block">
         <div class="form-row" style="margin-bottom:10px">
           <div class="form-group"><label class="form-lbl">Venue</label><select id="m-log-venue" onchange="mobileUpdateEq()"></select></div>
           <div class="form-group"><label class="form-lbl">Equipment</label><select id="m-log-eq" onchange="mobileEqChanged()"></select></div>
@@ -704,12 +704,27 @@ function applyConfig(){
 function checkQRParams(){
   const params=new URLSearchParams(window.location.search);
   const venue=params.get('venue'), eq=params.get('eq');
-  if(!venue||!eq||!config) return;
-  // Switch to log tab, set mobile selectors, hide selector row
+
+  // No QR params — show selectors and populate header labels from defaults
+  if(!venue||!eq){
+    $('ml-selectors').style.display='block';
+    if(config) mobileEqChanged();
+    return;
+  }
+
+  if(!config) return;
+
+  // QR params present — pre-fill and hide selectors
   switchTab('log');
   const isMobile=window.innerWidth<=600;
   if(isMobile){
     $('ml-selectors').style.display='none';
+    // Sync the hidden selects so submitMobile() reads the right values
+    const vSel=$('m-log-venue');
+    for(let i=0;i<vSel.options.length;i++) if(vSel.options[i].value===venue){vSel.selectedIndex=i;break;}
+    mobileUpdateEq();
+    const eSel=$('m-log-eq');
+    for(let i=0;i<eSel.options.length;i++) if(eSel.options[i].value===eq){eSel.selectedIndex=i;break;}
     setMobileEq(venue,eq);
   } else {
     const vSel=$('d-log-venue');
