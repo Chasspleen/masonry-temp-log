@@ -482,8 +482,10 @@ tr:hover td{background:rgba(255,255,255,.015)}
 
   <!-- ── TRENDS ── -->
   <div class="sec" id="sec-chart">
+    <div style="margin-bottom:10px">
+      <select id="chart-eq" onchange="renderChart()" style="max-width:380px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:13px;outline:none;width:100%"></select>
+    </div>
     <div class="card">
-      <div style="margin-bottom:12px"><select id="chart-eq" onchange="renderChart()" style="max-width:320px"></select></div>
       <div class="chart-legend" id="chart-legend"></div>
       <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
     </div>
