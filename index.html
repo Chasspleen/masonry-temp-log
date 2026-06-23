@@ -699,6 +699,7 @@ async function loadAll(){
 function applyConfig(){
   updateLogVenues(); updateHistoryFilter();
   checkQRParams();
+  populateChartSelect(); // rebuild after config changes
   if(adminUnlocked) renderAdminPanels();
 }
 
@@ -1096,16 +1097,24 @@ async function deleteReading(rowIndex, btn){
 // ── CHART ─────────────────────────────────────────────────────
 function populateChartSelect(){
   if(!config) return;
-  const sel=$('chart-eq'); sel.innerHTML='';
+  const sel=$('chart-eq');
+  // Preserve current selection across rebuilds
+  const current=sel.value;
+  sel.innerHTML='';
   config.venues.forEach(v=>(config.equipment[v]||[]).forEach(e=>{
     const o=document.createElement('option');
     o.value=`${v}|||${e.name}`; o.text=`${v} — ${e.name}`; sel.appendChild(o);
   }));
+  // Restore selection if it still exists
+  if(current && sel.querySelector(`option[value="${CSS.escape(current)}"]`)){
+    sel.value=current;
+  }
 }
 
 function renderChart(){
   if(!config) return;
-  populateChartSelect();
+  // Only populate if empty — never wipe on onchange
+  if($('chart-eq').options.length===0) populateChartSelect();
   const val=$('chart-eq').value; if(!val) return;
   const [venue,eqName]=val.split('|||');
   const eq=(config.equipment[venue]||[]).find(e=>e.name===eqName);
