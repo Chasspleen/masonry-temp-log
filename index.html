@@ -588,6 +588,17 @@ tr:hover td{background:rgba(255,255,255,.015)}
         </div>
       </div>
 
+      <!-- Data retention -->
+      <div class="admin-section">
+        <div class="admin-section-hd"><span>Data retention</span></div>
+        <div class="info-box">Readings older than 30 days are deleted automatically each night at 03:00.<br>Run manually below if needed — this cannot be undone.</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <button class="btn-danger" id="cleanup-btn" onclick="runCleanup()">Delete readings older than 30 days</button>
+          <span id="cleanup-result" style="font-size:12px;font-family:var(--mono);color:var(--text3)"></span>
+        </div>
+      </div>
+      <div class="divider"></div>
+
       <div class="save-bar">
         <div class="save-bar-hint" id="save-hint">All changes saved</div>
         <div style="display:flex;gap:8px">
@@ -616,7 +627,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
 <div class="toast" id="toast"></div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZBrzyfUMMCAf3GiWtmkNI5gILUUUuPazIGyYVI5kCbPDrC_8bbXNFrYSD4AzGEEzC/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx_WX3vodR-yOf8aDq3WRB92fd7LZqMh1A8tJ2MxNFqKqf6zDCGI4OWo9mxXhwwCI7D/exec";
 const APP_URL    = window.location.origin + window.location.pathname;
 
 // ── STATE ──────────────────────────────────────────────────────
@@ -1395,6 +1406,50 @@ self.addEventListener('fetch',e=>{
 });`;
   const blob=new Blob([SW],{type:'application/javascript'});
   navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+}
+
+// ── CLEANUP ───────────────────────────────────────────────────
+async function runCleanup(){
+  if(!config){toast('Config not loaded','err');return;}
+  if(!confirm('Delete all readings older than 30 days from Google Sheets? This cannot be undone.')) return;
+  const btn=$('cleanup-btn');
+  btn.disabled=true; btn.textContent='Running...';
+  $('cleanup-result').textContent='';
+  try{
+    const res=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({
+      action:'cleanup',
+      adminPin:config.adminPin
+    })});
+    const data=await res.json();
+    if(data.result==='ok'){
+      const n=data.deleted;
+      $('cleanup-result').textContent=n>0?`${n} reading${n>1?'s':''} deleted`:'No readings older than 30 days found';
+      $('cleanup-result').style.color=n>0?'var(--amber)':'var(--green)';
+      if(n>0){
+        // Remove old readings from local array too
+        const cutoff=new Date();
+        cutoff.setDate(cutoff.getDate()-30);
+        cutoff.setHours(0,0,0,0);
+        readings=readings.filter(r=>{
+          const[d,m,y]=r.date.split('/');
+          const rd=new Date(y,m-1,d);
+          return rd>=cutoff;
+        });
+        renderDashboard(); renderHistory();
+        toast(`${n} old reading${n>1?'s':''} deleted`,'info');
+      }
+    } else {
+      $('cleanup-result').textContent='Error: '+(data.message||'unknown');
+      $('cleanup-result').style.color='var(--red)';
+      toast('Cleanup failed','err');
+    }
+  }catch(e){
+    $('cleanup-result').textContent='Connection error';
+    $('cleanup-result').style.color='var(--red)';
+    toast('Could not reach Google Sheets','err');
+  } finally {
+    btn.disabled=false; btn.textContent='Delete readings older than 30 days';
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
