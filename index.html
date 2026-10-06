@@ -483,7 +483,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
   <!-- ── TRENDS ── -->
   <div class="sec" id="sec-chart">
     <div style="margin-bottom:10px">
-      <select id="chart-eq" onchange="renderChart()" style="max-width:380px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:13px;outline:none;width:100%"></select>
+      <select id="chart-eq" onchange="debouncedRenderChart()" style="max-width:380px;padding:9px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font);font-size:13px;outline:none;width:100%"></select>
     </div>
     <div class="card">
       <div class="chart-legend" id="chart-legend"></div>
@@ -645,6 +645,7 @@ let deskPhotoData   = null;
 // ── UTILS ──────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function debounce(fn, ms){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), ms); }; }
 function toast(msg,type='ok'){
   const el=$('toast'); el.textContent=msg; el.className='toast '+type+' show';
   clearTimeout(el._t); el._t=setTimeout(()=>el.className='toast',3400);
@@ -688,21 +689,47 @@ async function flushQueue(){
 }
 
 // ── LOAD ───────────────────────────────────────────────────────
+// Phase 1: load config from localStorage cache instantly so UI is
+//          usable before the network responds.
+// Phase 2: fetch fresh config + last 200 readings from the sheet.
+
+const CONFIG_CACHE_KEY = 'masonryConfigCache';
+const MAX_ROWS = 200;
+
+function loadCachedConfig(){
+  try{
+    const raw = localStorage.getItem(CONFIG_CACHE_KEY);
+    if(raw){ config = JSON.parse(raw); applyConfig(); renderDashboard(); }
+  }catch(e){}
+}
+
+function saveCachedConfig(cfg){
+  try{ localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(cfg)); }catch(e){}
+}
+
 async function loadAll(){
+  // Immediately apply any cached config so the UI isn't blank
+  loadCachedConfig();
   setSyncBadge('syncing');
   try{
-    const res=await fetch(SCRIPT_URL);
-    const data=await res.json();
+    const res  = await fetch(SCRIPT_URL + '?limit=' + MAX_ROWS);
+    const data = await res.json();
     if(data.result==='ok'){
-      config=data.config; readings=(data.rows||[]).reverse();
-      setSyncBadge('live'); applyConfig();
+      config   = data.config;
+      readings = (data.rows||[]).reverse();
+      saveCachedConfig(config);
+      setSyncBadge('live');
+      applyConfig();
       renderDashboard(); renderHistory(); populateChartSelect();
       updateQueueBanner();
       if(offlineQueue.length) flushQueue();
-    } else {setSyncBadge('err');toast('Could not load sheet data','err');}
+    } else {
+      setSyncBadge('err');
+      toast('Could not load sheet data','err');
+    }
   }catch(e){
     setSyncBadge('err');
-    toast('Offline — previous data shown','info');
+    toast('Offline — cached data shown','info');
     updateQueueBanner();
   }
 }
@@ -1149,6 +1176,7 @@ function renderChart(){
     }}
   });
 }
+const debouncedRenderChart = debounce(renderChart, 300);
 
 // ── EXPORT ────────────────────────────────────────────────────
 function exportCSV(){
@@ -1204,7 +1232,7 @@ function lockAdmin(){
   if(unsaved&&!confirm('Unsaved changes will not be synced. Lock anyway?')) return;
   adminUnlocked=false;
   ['ap1','ap2','ap3','ap4'].forEach(id=>$(id).value='');
-  $('admin-lock').style.display='flex';
+  $('admin-lock').style.display='block';
   $('admin-panels').classList.remove('unlocked');
   markSaved();
 }
@@ -1375,6 +1403,7 @@ function addVenue(){
 function confirmDelete(type,key,label){
   $('modal-title').textContent='Delete '+type;
   $('modal-sub').textContent=`Remove "${label}"? This cannot be undone.`;
+  $('modal-ok').textContent='Delete';
   $('modal-ok').onclick=()=>{doDelete(type,key);closeModal();};
   $('confirm-modal').classList.add('show');
 }
