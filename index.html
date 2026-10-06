@@ -755,25 +755,27 @@ function checkQRParams(){
 
   if(!config) return;
 
-  // QR params present — pre-fill and hide selectors
+  // QR params present — pre-fill both mobile and desktop selects,
+  // hide the mobile selector row regardless of screen width
   switchTab('log');
-  const isMobile=window.innerWidth<=600;
-  if(isMobile){
-    $('ml-selectors').style.display='none';
-    // Sync the hidden selects so submitMobile() reads the right values
-    const vSel=$('m-log-venue');
-    for(let i=0;i<vSel.options.length;i++) if(vSel.options[i].value===venue){vSel.selectedIndex=i;break;}
-    mobileUpdateEq();
-    const eSel=$('m-log-eq');
-    for(let i=0;i<eSel.options.length;i++) if(eSel.options[i].value===eq){eSel.selectedIndex=i;break;}
-    setMobileEq(venue,eq);
-  } else {
-    const vSel=$('d-log-venue');
-    for(let i=0;i<vSel.options.length;i++) if(vSel.options[i].value===venue){vSel.selectedIndex=i;break;}
-    deskUpdateEq();
-    const eSel=$('d-log-eq');
-    for(let i=0;i<eSel.options.length;i++) if(eSel.options[i].value===eq){eSel.selectedIndex=i;break;}
-  }
+
+  // Always hide selectors when arriving via QR — unit is already known
+  $('ml-selectors').style.display='none';
+
+  // Sync mobile selects so submitMobile() reads correct values
+  const mVSel=$('m-log-venue');
+  for(let i=0;i<mVSel.options.length;i++) if(mVSel.options[i].value===venue){mVSel.selectedIndex=i;break;}
+  mobileUpdateEq();
+  const mESel=$('m-log-eq');
+  for(let i=0;i<mESel.options.length;i++) if(mESel.options[i].value===eq){mESel.selectedIndex=i;break;}
+  setMobileEq(venue,eq);
+
+  // Sync desktop selects too in case viewport is wide
+  const dVSel=$('d-log-venue');
+  for(let i=0;i<dVSel.options.length;i++) if(dVSel.options[i].value===venue){dVSel.selectedIndex=i;break;}
+  deskUpdateEq();
+  const dESel=$('d-log-eq');
+  for(let i=0;i<dESel.options.length;i++) if(dESel.options[i].value===eq){dESel.selectedIndex=i;break;}
   // Clean URL
   window.history.replaceState({},document.title,window.location.pathname);
 }
