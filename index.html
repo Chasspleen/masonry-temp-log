@@ -641,6 +641,10 @@ let offlineQueue = JSON.parse(localStorage.getItem('masonryQueue')||'[]');
 let mobileTemp = '';
 let mobilePhotoData = null;
 let deskPhotoData   = null;
+// QR pre-fill — captured once at page load, re-applied on every applyConfig
+const _qrParams = new URLSearchParams(window.location.search);
+const QR_VENUE  = _qrParams.get('venue') || '';
+const QR_EQ     = _qrParams.get('eq')    || '';
 
 // ── UTILS ──────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -742,12 +746,12 @@ function applyConfig(){
 }
 
 // ── QR PARAM PRE-FILL ──────────────────────────────────────────
+// QR_VENUE and QR_EQ are captured once at page load (see STATE block).
+// checkQRParams() is called by applyConfig() on every config load/reload,
+// so it must re-apply from stored constants — never re-read the URL.
 function checkQRParams(){
-  const params=new URLSearchParams(window.location.search);
-  const venue=params.get('venue'), eq=params.get('eq');
-
-  // No QR params — show selectors and populate header labels from defaults
-  if(!venue||!eq){
+  if(!QR_VENUE || !QR_EQ){
+    // No QR — show selectors, populate labels from current dropdown state
     $('ml-selectors').style.display='block';
     if(config) mobileEqChanged();
     return;
@@ -755,29 +759,36 @@ function checkQRParams(){
 
   if(!config) return;
 
-  // QR params present — pre-fill both mobile and desktop selects,
-  // hide the mobile selector row regardless of screen width
+  // QR arrived — switch to log tab, hide selectors, pre-fill every time
   switchTab('log');
-
-  // Always hide selectors when arriving via QR — unit is already known
   $('ml-selectors').style.display='none';
 
-  // Sync mobile selects so submitMobile() reads correct values
+  // Sync mobile venue select
   const mVSel=$('m-log-venue');
-  for(let i=0;i<mVSel.options.length;i++) if(mVSel.options[i].value===venue){mVSel.selectedIndex=i;break;}
+  for(let i=0;i<mVSel.options.length;i++){
+    if(mVSel.options[i].value===QR_VENUE){mVSel.selectedIndex=i;break;}
+  }
   mobileUpdateEq();
+  // Sync mobile equipment select
   const mESel=$('m-log-eq');
-  for(let i=0;i<mESel.options.length;i++) if(mESel.options[i].value===eq){mESel.selectedIndex=i;break;}
-  setMobileEq(venue,eq);
+  for(let i=0;i<mESel.options.length;i++){
+    if(mESel.options[i].value===QR_EQ){mESel.selectedIndex=i;break;}
+  }
+  setMobileEq(QR_VENUE, QR_EQ);
 
-  // Sync desktop selects too in case viewport is wide
+  // Sync desktop selects too (in case viewport is wide)
   const dVSel=$('d-log-venue');
-  for(let i=0;i<dVSel.options.length;i++) if(dVSel.options[i].value===venue){dVSel.selectedIndex=i;break;}
+  for(let i=0;i<dVSel.options.length;i++){
+    if(dVSel.options[i].value===QR_VENUE){dVSel.selectedIndex=i;break;}
+  }
   deskUpdateEq();
   const dESel=$('d-log-eq');
-  for(let i=0;i<dESel.options.length;i++) if(dESel.options[i].value===eq){dESel.selectedIndex=i;break;}
-  // Clean URL
-  window.history.replaceState({},document.title,window.location.pathname);
+  for(let i=0;i<dESel.options.length;i++){
+    if(dESel.options[i].value===QR_EQ){dESel.selectedIndex=i;break;}
+  }
+
+  // Clean URL once — safe to call repeatedly, replaceState is idempotent
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 // ── TABS ───────────────────────────────────────────────────────
